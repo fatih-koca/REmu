@@ -1,0 +1,73 @@
+# XcodeGen spec — run `xcodegen generate` to produce REmu.xcodeproj
+# Install: brew install xcodegen
+
+name: REmu
+options:
+  bundleIdPrefix: com.fatihkoca
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_BITCODE: NO
+    CLANG_ENABLE_MODULES: YES
+    CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+    CLANG_CXX_LIBRARY: "libc++"
+
+targets:
+  REmu:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+    resources:
+      - Resources
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: REmu
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: true
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UIBackgroundModes:
+          - audio
+        NSMicrophoneUsageDescription: "Used for emulator audio processing."
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: "ROM File"
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.data
+              - public.item
+        UIApplicationSupportsIndirectInputEvents: true
+    entitlements:
+      path: Resources/REmu.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fatihkoca.REmu2026
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/Bridge/RetroNexus-Bridging-Header.h
+        OTHER_LDFLAGS: "-ObjC"
+        CODE_SIGN_ENTITLEMENTS: Resources/REmu.entitlements
+        DEVELOPMENT_TEAM: ""  # ← Kendi Apple Developer Team ID'ni buraya koy
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    dependencies:
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
+      - sdk: GameController.framework
+      - sdk: AVFoundation.framework
+      - sdk: UIKit.framework
+      - sdk: SwiftUI.framework

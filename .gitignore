@@ -1,0 +1,29 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+
+# macOS
+.DS_Store
+
+# Swift
+.swiftpm/
+Package.resolved
+
+# Libretro binary'leri (lisans nedeniyle kendin indireceksin)
+Resources/Cores/*.dylib
+
+# ROM/BIOS (asla commit'lenmez)
+*.iso
+*.bin
+*.cue
+*.z64
+*.gcm
+*.cso
+*.pbp
+
+# IDE
+.vscode/
+.idea/

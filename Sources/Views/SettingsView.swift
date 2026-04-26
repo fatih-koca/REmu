@@ -1,0 +1,283 @@
+import SwiftUI
+
+// MARK: - Settings
+//
+// Reachable from the gear icon on the library screen. Hosts the legal
+// documents (Terms / Privacy) and small "About" details. Apple App Review
+// reviewers expect both Terms and Privacy to be reachable from inside the
+// app — surfacing them here keeps the EULA from being a one-shot wall and
+// lets us point Apple at a stable in-app location.
+
+struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var showingTerms = false
+    @State private var showingPrivacy = false
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        legalSection
+                        aboutSection
+                        Spacer(minLength: 20)
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .foregroundColor(.blue)
+                }
+            }
+            .fullScreenCover(isPresented: $showingTerms) {
+                EULAView(displayMode: .review) {
+                    showingTerms = false
+                }
+            }
+            .sheet(isPresented: $showingPrivacy) {
+                PrivacyPolicyView()
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+
+    // MARK: Sections
+
+    private var legalSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(icon: "doc.text", label: "LEGAL", tint: .orange)
+
+            VStack(spacing: 0) {
+                settingRow(
+                    icon: "doc.text",
+                    title: "Terms of Use",
+                    subtitle: "Review the agreement you accepted"
+                ) { showingTerms = true }
+
+                Divider()
+                    .background(Color.white.opacity(0.08))
+                    .padding(.leading, 56)
+
+                settingRow(
+                    icon: "lock.shield",
+                    title: "Privacy Policy",
+                    subtitle: "What data REmu does and doesn't collect"
+                ) { showingPrivacy = true }
+            }
+            .background(rowGroupBackground)
+        }
+    }
+
+    private var aboutSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(icon: "info.circle", label: "ABOUT", tint: .blue)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 14) {
+                    iconCell(systemName: "app.badge", tint: .blue)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Version")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        Text(appVersion)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                }
+                .padding(14)
+            }
+            .background(rowGroupBackground)
+        }
+    }
+
+    // MARK: Row helpers
+
+    private func sectionHeader(icon: String, label: String, tint: Color) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundColor(tint)
+            Text(label)
+                .font(.caption).bold()
+                .foregroundColor(tint)
+                .tracking(0.5)
+        }
+        .padding(.leading, 4)
+    }
+
+    private func settingRow(
+        icon: String,
+        title: String,
+        subtitle: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                iconCell(systemName: icon, tint: .orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.gray.opacity(0.6))
+            }
+            .padding(14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func iconCell(systemName: String, tint: Color) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(tint.opacity(0.18))
+                .frame(width: 32, height: 32)
+            Image(systemName: systemName)
+                .font(.body)
+                .foregroundColor(tint)
+        }
+    }
+
+    private var rowGroupBackground: some View {
+        RoundedRectangle(cornerRadius: 14)
+            .fill(Color.white.opacity(0.06))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            )
+    }
+
+    private var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let v = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let b = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(v) (\(b))"
+    }
+}
+
+// MARK: - Privacy Policy
+//
+// Plain-text in-app version of the policy. Mirror the same wording at a
+// public URL (GitHub Pages, your domain, etc.) and paste that URL into
+// App Store Connect's "Privacy Policy URL" field at submission time —
+// Apple requires both an in-app surface and a publicly reachable copy.
+
+private struct PrivacyPolicyView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        Text("Last updated: April 26, 2026")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+
+                        intro
+
+                        section(
+                            title: "No Personal Data Collected",
+                            body: "REmu does not collect, store, or transmit any personally identifiable information. We do not require an account, and we do not log your activity."
+                        )
+
+                        section(
+                            title: "Local-Only Storage",
+                            body: "All ROM files, save states, and screenshots remain on your device, inside the app's protected sandbox. They are never uploaded to any server, shared with us, or made available to third parties."
+                        )
+
+                        section(
+                            title: "No Analytics or Tracking",
+                            body: "This version of REmu does not include any analytics SDK, tracking pixel, or third-party telemetry. Crash reports, if shared, are handled by Apple's standard system tooling and require your explicit opt-in via iOS Settings."
+                        )
+
+                        section(
+                            title: "Advertising",
+                            body: "The current version of REmu does not display advertisements. If a future release introduces ad-supported features, this policy will be updated and consent will be requested where required (e.g., via App Tracking Transparency)."
+                        )
+
+                        section(
+                            title: "External Links",
+                            body: "The app's tutorial may reference public websites such as itch.io for legal homebrew games. Following an external link takes you to the third party's own privacy environment, which is governed by their policies, not this one."
+                        )
+
+                        section(
+                            title: "Children's Privacy",
+                            body: "REmu is not directed at children under 13 and does not knowingly collect data from anyone. If you believe a child has provided personal data through this app, please contact us so we can confirm there is nothing on our end to remove."
+                        )
+
+                        section(
+                            title: "Contact",
+                            body: "For privacy questions, please contact: fatihkcf@gmail.com"
+                        )
+
+                        section(
+                            title: "Changes",
+                            body: "We may revise this policy. The \"Last updated\" date above reflects the most recent revision."
+                        )
+
+                        Spacer(minLength: 20)
+                    }
+                    .padding(20)
+                    .frame(maxWidth: 720, alignment: .leading)
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .navigationTitle("Privacy Policy")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+
+    private var intro: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "lock.shield.fill")
+                .foregroundColor(.green)
+                .font(.title2)
+            Text("REmu is built to respect your privacy. This document describes what data the app handles and what it does not.")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.green.opacity(0.10))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.green.opacity(0.25)))
+        )
+    }
+
+    private func section(title: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.white)
+            Text(body)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
