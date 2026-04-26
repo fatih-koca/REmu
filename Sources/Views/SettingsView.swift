@@ -179,6 +179,10 @@ struct SettingsView: View {
 private struct PrivacyPolicyView: View {
     @Environment(\.dismiss) private var dismiss
 
+    /// Public mirror of this policy. Submit the same URL to App Store Connect
+    /// in the "Privacy Policy URL" field at app submission.
+    private let publicURL = URL(string: "https://fatih-koca.github.io/REmu/privacy.html")!
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -186,9 +190,20 @@ private struct PrivacyPolicyView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        Text("Last updated: April 26, 2026")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                        HStack {
+                            Text("Last updated: April 26, 2026")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            Spacer()
+                            Link(destination: publicURL) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "arrow.up.right.square")
+                                    Text("View Online")
+                                }
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                            }
+                        }
 
                         intro
 
