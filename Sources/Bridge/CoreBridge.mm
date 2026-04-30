@@ -33,6 +33,7 @@ typedef void    (*retro_set_audio_sample_t)(retro_audio_sample_t);
 typedef void    (*retro_set_audio_sample_batch_t)(retro_audio_sample_batch_t);
 typedef void    (*retro_set_environment_t)(retro_environment_t);
 typedef void    (*retro_get_system_av_info_t)(struct retro_system_av_info*);
+typedef void    (*retro_get_system_info_t)(struct retro_system_info*);
 
 // ---------------------------------------------------------------------------
 // Global state
@@ -92,6 +93,36 @@ static NSString* documentsSubdir(NSString* sub) {
                                              attributes:nil
                                                   error:nil];
     return full;
+}
+
+/// Reset every dlsym'd function pointer + cached state. Must run after any
+/// dlclose so we never call into unmapped pages — that exact race produced the
+/// EXC_BAD_ACCESS we saw at rn_core_stop after a failed load.
+static void cleanup_core_state() {
+    if (g_core_handle) {
+        dlclose(g_core_handle);
+        g_core_handle = nullptr;
+    }
+    g_retro_init               = nullptr;
+    g_retro_deinit             = nullptr;
+    g_retro_load_game          = nullptr;
+    g_retro_unload_game        = nullptr;
+    g_retro_run                = nullptr;
+    g_retro_reset              = nullptr;
+    g_retro_serialize_size     = nullptr;
+    g_retro_serialize          = nullptr;
+    g_retro_unserialize        = nullptr;
+    g_retro_get_system_av_info = nullptr;
+
+    g_pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
+    g_pixel_conv_buf.clear();
+    g_sample_rate = 0.0;
+    g_fps         = 0.0;
+    g_base_width  = 0;
+    g_base_height = 0;
+
+    g_system_dir = nil;
+    g_save_dir   = nil;
 }
 
 /// Resolve a libretro core .dylib bundled with the app. Tries (in order):
@@ -384,13 +415,34 @@ bool rn_core_load(const char* core_id, const char* rom_path) {
     ok &= load_sym(g_core_handle, "retro_unload_game",           g_retro_unload_game);
     ok &= load_sym(g_core_handle, "retro_run",                   g_retro_run);
     ok &= load_sym(g_core_handle, "retro_get_system_av_info",    g_retro_get_system_av_info);
-    if (!ok) { dlclose(g_core_handle); g_core_handle = nullptr; return false; }
+    if (!ok) { cleanup_core_state(); return false; }
 
     // Optional entry points (all cores have these in practice but be safe).
     load_sym(g_core_handle, "retro_reset",          g_retro_reset,          /*required=*/false);
     load_sym(g_core_handle, "retro_serialize_size", g_retro_serialize_size, false);
     load_sym(g_core_handle, "retro_serialize",      g_retro_serialize,      false);
     load_sym(g_core_handle, "retro_unserialize",    g_retro_unserialize,    false);
+
+    // ── Probe static info BEFORE retro_init. need_fullpath decides whether
+    //    we hand the core a memory buffer or just the path. Many ROM-load
+    //    failures we hit on iOS turned out to be "we passed both path AND
+    //    data, the core only wanted one" — the correct protocol is to obey
+    //    the flag the core itself reports here.
+    retro_get_system_info_t  get_sys_info = nullptr;
+    load_sym(g_core_handle, "retro_get_system_info", get_sys_info, false);
+
+    struct retro_system_info sys_info{};
+    if (get_sys_info) {
+        get_sys_info(&sys_info);
+        NSLog(@"[CoreBridge] Core info: name=%s version=%s exts=%s need_fullpath=%d block_extract=%d",
+              sys_info.library_name      ? sys_info.library_name      : "(null)",
+              sys_info.library_version   ? sys_info.library_version   : "(null)",
+              sys_info.valid_extensions  ? sys_info.valid_extensions  : "(null)",
+              sys_info.need_fullpath ? 1 : 0,
+              sys_info.block_extract ? 1 : 0);
+    } else {
+        NSLog(@"[CoreBridge] retro_get_system_info missing — assuming need_fullpath=false");
+    }
 
     // ── Register callbacks (env BEFORE init: the core may probe pixel format /
     //    paths during retro_init, so it must already have our env handler) ──
@@ -419,25 +471,52 @@ bool rn_core_load(const char* core_id, const char* rom_path) {
     if (set_audio_smp)   set_audio_smp(libretro_audio_sample);
     if (set_audio_batch) set_audio_batch(libretro_audio_batch);
 
-    // ── Initialize and load the ROM ───────────────────────────────────
+    // ── Initialize the core ───────────────────────────────────────────
     g_retro_init();
 
-    struct retro_game_info info { rom_path, nullptr, 0, nullptr };
+    // ── Build retro_game_info per the core's need_fullpath contract ──
+    struct retro_game_info info{};
+    info.path = rom_path;
+    info.meta = nullptr;
 
-    // SNES9x is happy with just `path`; PS1/N64-class cores need the buffer.
-    // Load the bytes regardless — cheap on SNES (max ~6 MB) and lets the
-    // bridge stay generic across cores.
-    NSData* romData = [NSData dataWithContentsOfFile:@(rom_path)];
-    if (romData) {
+    // Keep this NSData alive for the entire retro_load_game call: ARC
+    // on the local strong ref guarantees the buffer outlives the C call.
+    NSData* romData = nil;
+
+    if (!sys_info.need_fullpath) {
+        NSError* err = nil;
+        romData = [NSData dataWithContentsOfFile:@(rom_path)
+                                         options:NSDataReadingMappedIfSafe
+                                           error:&err];
+        if (!romData) {
+            NSLog(@"[CoreBridge] Could not read ROM file: %s — %@",
+                  rom_path, err ?: @"(no error)");
+            g_retro_deinit();
+            cleanup_core_state();
+            return false;
+        }
         info.data = romData.bytes;
         info.size = romData.length;
+
+        // Fingerprint the first 8 bytes so a corrupt / 0-byte file is obvious
+        // in the log without dumping anything ROM-identifying.
+        const uint8_t* head = (const uint8_t*)romData.bytes;
+        NSLog(@"[CoreBridge] ROM ready: %zu bytes, head=%02x %02x %02x %02x %02x %02x %02x %02x",
+              (size_t)romData.length,
+              head[0], head[1], head[2], head[3],
+              head[4], head[5], head[6], head[7]);
+    } else {
+        NSLog(@"[CoreBridge] Core wants full path; not reading ROM into memory");
     }
 
+    NSLog(@"[CoreBridge] Calling retro_load_game(path=%s, data=%p, size=%zu)",
+          info.path ? info.path : "(null)", info.data, info.size);
+
     if (!g_retro_load_game(&info)) {
-        NSLog(@"[CoreBridge] retro_load_game failed for: %s", rom_path);
+        NSLog(@"[CoreBridge] retro_load_game returned false. "
+              @"Core's own log lines (if any) appear above tagged [Core/...].");
         g_retro_deinit();
-        dlclose(g_core_handle);
-        g_core_handle = nullptr;
+        cleanup_core_state();
         return false;
     }
 
@@ -461,28 +540,14 @@ void rn_core_start(void) {
 }
 
 void rn_core_stop(void) {
-    if (g_retro_unload_game) g_retro_unload_game();
-    if (g_retro_deinit)      g_retro_deinit();
-    if (g_core_handle)       dlclose(g_core_handle);
-
-    g_core_handle              = nullptr;
-    g_retro_init               = nullptr;
-    g_retro_deinit             = nullptr;
-    g_retro_load_game          = nullptr;
-    g_retro_unload_game        = nullptr;
-    g_retro_run                = nullptr;
-    g_retro_reset              = nullptr;
-    g_retro_serialize_size     = nullptr;
-    g_retro_serialize          = nullptr;
-    g_retro_unserialize        = nullptr;
-    g_retro_get_system_av_info = nullptr;
-
-    g_pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
-    g_pixel_conv_buf.clear();
-    g_sample_rate = 0.0;
-    g_fps         = 0.0;
-    g_base_width  = 0;
-    g_base_height = 0;
+    // Tear down ONLY if a core is actually loaded. Calling these through
+    // dangling pointers is what produced the EXC_BAD_ACCESS we hit when the
+    // user backed out of a game whose load had failed.
+    if (g_core_handle) {
+        if (g_retro_unload_game) g_retro_unload_game();
+        if (g_retro_deinit)      g_retro_deinit();
+    }
+    cleanup_core_state();
 }
 
 void rn_core_reset(void) {

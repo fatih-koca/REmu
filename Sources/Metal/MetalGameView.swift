@@ -225,11 +225,18 @@ final class MetalGameViewController: UIViewController {
             romPath: rom.filePath.path
         )
 
-        // Tell SwiftUI parent so it can render an error overlay.
-        NotificationCenter.default.post(
-            name: ok ? .remuCoreLoaded : .remuCoreLoadFailed,
-            object: rom.console.coreIdentifier
-        )
+        // Defer the post one runloop tick so the SwiftUI host has finished
+        // mounting EmulatorScreenView and its `.onReceive` is subscribed —
+        // posting synchronously here can fire before the listener is wired
+        // up, which left the "core failed" overlay stuck off-screen on a
+        // black render surface.
+        let coreId = rom.console.coreIdentifier
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: ok ? .remuCoreLoaded : .remuCoreLoadFailed,
+                object: coreId
+            )
+        }
 
         guard ok else { return }   // don't bother starting frame loop if no core
 

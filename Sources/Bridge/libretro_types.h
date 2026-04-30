@@ -59,6 +59,20 @@ struct retro_system_av_info {
 };
 
 // ---------------------------------------------------------------------------
+// Static system info (returned by retro_get_system_info — safe to call before
+// retro_init). `need_fullpath` decides whether we hand the core a path or a
+// memory buffer in retro_load_game.
+// ---------------------------------------------------------------------------
+
+struct retro_system_info {
+    const char* library_name;
+    const char* library_version;
+    const char* valid_extensions;
+    bool        need_fullpath;
+    bool        block_extract;
+};
+
+// ---------------------------------------------------------------------------
 // Pixel formats (RETRO_PIXEL_FORMAT_*) — what cores ask the frontend to use
 // via RETRO_ENVIRONMENT_SET_PIXEL_FORMAT (cmd 10)
 // ---------------------------------------------------------------------------
