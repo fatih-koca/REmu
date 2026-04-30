@@ -81,7 +81,11 @@ final class ROMLibrary: ObservableObject {
     private init() { load() }
 
     func add(_ rom: ROMEntry) {
-        guard !roms.contains(where: { $0.filePath == rom.filePath }) else { return }
+        // Compare by filename, not by full URL: the absolute URL embeds the
+        // Application Container UUID which changes between reinstalls, but
+        // the actual file always lands in Documents/ROMs/<basename>.
+        let key = rom.filePath.lastPathComponent
+        guard !roms.contains(where: { $0.filePath.lastPathComponent == key }) else { return }
         roms.append(rom)
         save()
     }
@@ -162,7 +166,9 @@ final class ROMLibrary: ObservableObject {
         }
 
         // If the ROM is already in the library, return the existing entry.
-        if let existing = roms.first(where: { $0.filePath.path == workingURL.path }) {
+        // Match by basename — see add() for the rationale.
+        let basename = workingURL.lastPathComponent
+        if let existing = roms.first(where: { $0.filePath.lastPathComponent == basename }) {
             return existing
         }
 
@@ -193,6 +199,34 @@ final class ROMLibrary: ObservableObject {
             let data = try? Data(contentsOf: persistenceURL),
             let decoded = try? JSONDecoder().decode([ROMEntry].self, from: data)
         else { return }
-        roms = decoded
+
+        // iOS assigns a new Application Container UUID on each reinstall, so
+        // the absolute URL we persisted last session is stale even though the
+        // file itself is still sitting in Documents/ROMs/. Rebase every entry
+        // against the current Documents directory using its basename, and
+        // drop entries whose file is genuinely gone (manually deleted, etc.).
+        let romsDir = FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ROMs")
+
+        var migrated: [ROMEntry] = []
+        for var entry in decoded {
+            let rebased = romsDir.appendingPathComponent(entry.filePath.lastPathComponent)
+            guard FileManager.default.fileExists(atPath: rebased.path) else {
+                NSLog("REmu library: dropping missing ROM entry: %@",
+                      entry.filePath.lastPathComponent)
+                continue
+            }
+            entry.filePath = rebased
+            migrated.append(entry)
+        }
+        roms = migrated
+
+        // Persist the migrated paths so the next launch starts clean and we
+        // don't re-run this rewrite on every load.
+        if migrated.count != decoded.count
+            || zip(migrated, decoded).contains(where: { $0.0.filePath != $0.1.filePath }) {
+            save()
+        }
     }
 }
