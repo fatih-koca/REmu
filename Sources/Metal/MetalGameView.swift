@@ -206,6 +206,9 @@ final class MetalGameViewController: UIViewController {
         mtkView.framebufferOnly = false
         mtkView.isPaused = true           // driven by CoreBridge frame callbacks
         mtkView.enableSetNeedsDisplay = false
+        // Letterbox / pillarbox bars (anywhere the aspect-fit quad doesn't
+        // cover) fall through to this clear color.
+        mtkView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         view.addSubview(mtkView)
 
         renderer = MetalRenderer(device: device, view: mtkView)
@@ -276,13 +279,10 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
     private var texture: MTLTexture?
     private var vertexBuffer: MTLBuffer!
 
-    // Full-screen quad (position + UV)
-    private let quadVertices: [Float] = [
-        -1,  1, 0, 0,
-         1,  1, 1, 0,
-        -1, -1, 0, 1,
-         1, -1, 1, 1,
-    ]
+    // Capacity: 4 vertices × (xy + uv) × 4 bytes — re-written each draw call to
+    // keep the game letterboxed inside the drawable as the device rotates or
+    // multitasks. Backed by .storageModeShared so we can memcpy directly.
+    private static let kVertexFloatCount = 4 * 4
 
     init(device: MTLDevice, view: MTKView) {
         self.device = device
@@ -290,10 +290,40 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         super.init()
         buildPipeline(view: view)
         vertexBuffer = device.makeBuffer(
-            bytes: quadVertices,
-            length: quadVertices.count * MemoryLayout<Float>.stride,
+            length: Self.kVertexFloatCount * MemoryLayout<Float>.stride,
             options: .storageModeShared
         )
+    }
+
+    /// Recompute clip-space corners for an aspect-fit quad so the game
+    /// pixels keep their native ratio (SNES 256×224 → ~8:7) regardless of
+    /// the iPhone/iPad display they're rendered on. The letterbox / pillarbox
+    /// area falls back to the MTKView's clear color (black).
+    private func updateVertexBuffer(viewSize: CGSize, textureWidth: Int, textureHeight: Int) {
+        guard viewSize.width > 0, viewSize.height > 0,
+              textureWidth > 0, textureHeight > 0 else { return }
+
+        let viewAR = Float(viewSize.width)  / Float(viewSize.height)
+        let texAR  = Float(textureWidth)    / Float(textureHeight)
+
+        var sx: Float = 1
+        var sy: Float = 1
+        if texAR > viewAR {
+            // Game is wider than the view — fit width, letterbox top/bottom.
+            sy = viewAR / texAR
+        } else {
+            // Game is taller (or equal) — fit height, pillarbox left/right.
+            sx = texAR / viewAR
+        }
+
+        let verts: [Float] = [
+            -sx,  sy, 0, 0,
+             sx,  sy, 1, 0,
+            -sx, -sy, 0, 1,
+             sx, -sy, 1, 1,
+        ]
+        memcpy(vertexBuffer.contents(), verts,
+               verts.count * MemoryLayout<Float>.stride)
     }
 
     func update(with pixelBuffer: PixelBuffer) {
@@ -325,6 +355,13 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
             let descriptor = view.currentRenderPassDescriptor,
             let texture
         else { return }
+
+        // Aspect-fit the game inside whatever drawable size the OS gave us.
+        updateVertexBuffer(
+            viewSize: view.drawableSize,
+            textureWidth: texture.width,
+            textureHeight: texture.height
+        )
 
         let commandBuffer = commandQueue.makeCommandBuffer()!
         let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)!

@@ -1,20 +1,22 @@
 import Foundation
 import AVFoundation
 
-/// Libretro core'undan gelen 16-bit stereo interleaved audio sample'ları
-/// AVAudioEngine üzerinden iOS speaker'a yönlendirir.
-///
-/// Sample rate her core için farklı (SNES9x ≈ 32040 Hz, GB ≈ 32768 Hz, PSX ≈ 44100).
-/// `start()` çağrılırken çekirdekten gelen native rate'i okuyup AVAudioFormat'ı ona
-/// göre kuruyoruz — yanlış rate ses bozulmasına / pitch kaymasına yol açar.
+/// Streams 16-bit stereo interleaved audio coming from a Libretro core into
+/// AVAudioEngine. Designed around a pull-based AVAudioSourceNode (the right
+/// shape for emulator audio): the engine calls our render block on the
+/// real-time audio thread and we hand it the samples the core most recently
+/// produced. This avoids the per-batch `scheduleBuffer` scheduler — which
+/// produced the click/jitter we hit earlier — and gives a clean, deterministic
+/// teardown: stopping the engine immediately silences the speaker instead of
+/// playing out a queue of already-scheduled buffers.
 final class AudioEngine {
     static let shared = AudioEngine()
 
     private let engine = AVAudioEngine()
-    private let playerNode = AVAudioPlayerNode()
+    private var sourceNode: AVAudioSourceNode?
     private let channels: AVAudioChannelCount = 2
 
-    /// Resolved per-core. 0 until `start()` runs.
+    /// Resolved per-core after `start()`. 0 before the first core loads.
     private(set) var sampleRate: Double = 0
 
     private var format: AVAudioFormat!
@@ -25,14 +27,11 @@ final class AudioEngine {
 
     // MARK: Lifecycle
 
-    /// Call this AFTER `CoreBridgeWrapper.shared.loadCore(...)` succeeds, so
-    /// the core has already populated its native sample rate.
+    /// Call AFTER `CoreBridgeWrapper.shared.loadCore(...)` succeeds — `start()`
+    /// reads the core's native sample rate at this moment.
     func start() {
         guard !isRunning else { return }
 
-        // Pull native rate from the core; fall back to 44.1 kHz if the bridge
-        // hasn't been initialised yet (defensive — should never happen on the
-        // current call path).
         let native = rn_audio_sample_rate()
         sampleRate = native > 0 ? native : 44_100
 
@@ -47,18 +46,51 @@ final class AudioEngine {
         }
         self.format = fmt
 
-        // ~4 seconds of stereo headroom — well above the worst case of a
-        // stalled main thread without runaway memory.
-        ringBuffer = RingBuffer(capacity: Int(sampleRate) * 2 * 4)
+        // ~0.5 s of stereo headroom — enough to absorb display-link jitter
+        // without lagging the speaker behind on-screen action.
+        ringBuffer = RingBuffer(capacity: Int(sampleRate) * 2 / 2)
 
         configureAudioSession()
 
-        engine.attach(playerNode)
-        engine.connect(playerNode, to: engine.mainMixerNode, format: format)
+        // Pull-based source: AVAudioEngine asks us for `frameCount` frames on
+        // the audio render thread; we copy them out of the ring buffer. If
+        // we're underrun (the core hasn't produced enough yet) we fill the
+        // remainder with silence — a brief duck rather than the click-storm
+        // that scheduling-based playback produced.
+        let source = AVAudioSourceNode(format: fmt) { [weak self] _, _, frameCount, abl -> OSStatus in
+            guard let self else { return noErr }
+            let bufferList = UnsafeMutableAudioBufferListPointer(abl)
+            let n = Int(frameCount)
+
+            let leftRaw  = bufferList[0].mData?.assumingMemoryBound(to: Float.self)
+            let rightRaw = bufferList[1].mData?.assumingMemoryBound(to: Float.self)
+
+            // Pull stereo-interleaved int16s out of the ring buffer.
+            let pulled = self.ringBuffer.copyOut(maxSamples: n * 2)
+
+            let actualFrames = pulled.count / 2
+            if let leftRaw, let rightRaw {
+                for i in 0..<actualFrames {
+                    leftRaw[i]  = Float(pulled[i * 2])     / 32767.0
+                    rightRaw[i] = Float(pulled[i * 2 + 1]) / 32767.0
+                }
+                // Pad trailing frames with silence on underrun.
+                if actualFrames < n {
+                    for i in actualFrames..<n {
+                        leftRaw[i]  = 0
+                        rightRaw[i] = 0
+                    }
+                }
+            }
+            return noErr
+        }
+
+        engine.attach(source)
+        engine.connect(source, to: engine.mainMixerNode, format: fmt)
+        sourceNode = source
 
         do {
             try engine.start()
-            playerNode.play()
             isRunning = true
             registerCoreCallback()
         } catch {
@@ -68,11 +100,26 @@ final class AudioEngine {
 
     func stop() {
         guard isRunning else { return }
-        playerNode.stop()
-        engine.stop()
-        engine.detach(playerNode)
-        ringBuffer?.reset()
+
+        // Mark stopped FIRST so any in-flight enqueue() bails before touching
+        // the buffer we're about to tear down.
         isRunning = false
+
+        // Detach the registered libretro audio callback so a stale retro_run
+        // can't call back into a half-torn-down engine.
+        rn_set_audio_callback(nil, nil)
+
+        engine.stop()
+        if let sourceNode {
+            engine.detach(sourceNode)
+        }
+        sourceNode = nil
+        ringBuffer?.reset()
+
+        // Release the audio session so other apps regain control immediately
+        // (and so we don't keep "playing" silently in the background).
+        try? AVAudioSession.sharedInstance()
+            .setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     // MARK: Core → Audio pipeline
@@ -86,38 +133,10 @@ final class AudioEngine {
     }
 
     /// Called by Libretro on each audio batch (int16 stereo interleaved).
-    /// May fire from a non-main thread; the ring buffer is locked.
+    /// Runs on whatever thread the core's run loop is on (currently main).
     private func enqueue(samples: UnsafePointer<Int16>, frames: Int) {
         guard isRunning, let ringBuffer else { return }
-        let totalSamples = frames * 2   // stereo
-        ringBuffer.write(samples: samples, count: totalSamples)
-        schedulePlayback(frames: frames)
-    }
-
-    private func schedulePlayback(frames: Int) {
-        guard let format, let ringBuffer else { return }
-        guard let buffer = AVAudioPCMBuffer(
-            pcmFormat: format,
-            frameCapacity: AVAudioFrameCount(frames)
-        ) else { return }
-        buffer.frameLength = AVAudioFrameCount(frames)
-
-        guard
-            let leftChannel  = buffer.floatChannelData?[0],
-            let rightChannel = buffer.floatChannelData?[1]
-        else { return }
-
-        // int16 interleaved → float32 planar, normalize to [-1, 1]
-        var temp = [Int16](repeating: 0, count: frames * 2)
-        let read = ringBuffer.read(into: &temp, count: frames * 2)
-        guard read == frames * 2 else { return }
-
-        for i in 0..<frames {
-            leftChannel[i]  = Float(temp[i * 2])     / 32767.0
-            rightChannel[i] = Float(temp[i * 2 + 1]) / 32767.0
-        }
-
-        playerNode.scheduleBuffer(buffer, completionHandler: nil)
+        ringBuffer.write(samples: samples, count: frames * 2)
     }
 
     // MARK: Session
@@ -125,9 +144,14 @@ final class AudioEngine {
     private func configureAudioSession() {
         let session = AVAudioSession.sharedInstance()
         do {
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setPreferredSampleRate(sampleRate)
-            try session.setPreferredIOBufferDuration(0.005)   // ~5ms low latency
+            try session.setCategory(.playback, mode: .default,
+                                    options: [.mixWithOthers])
+            // Don't fight the device's native rate — AVAudioEngine's mixer
+            // resamples between our format (e.g. 32040 Hz for SNES) and the
+            // hardware rate (typically 48 kHz). Setting setPreferredSampleRate
+            // here causes audible reconfiguration glitches on rate-mismatched
+            // cores like SNES9x.
+            try session.setPreferredIOBufferDuration(0.020)   // ~20 ms — robust under mild jitter
             try session.setActive(true)
         } catch {
             print("[AudioEngine] session error: \(error)")
@@ -135,7 +159,7 @@ final class AudioEngine {
     }
 }
 
-// MARK: - Lock-free Ring Buffer (audio thread safe)
+// MARK: - Ring buffer (single-producer / single-consumer, locked)
 
 private final class RingBuffer {
     private var buffer: [Int16]
@@ -155,20 +179,31 @@ private final class RingBuffer {
             buffer[writeIndex] = samples[i]
             writeIndex = (writeIndex + 1) % capacity
             if writeIndex == readIndex {
-                readIndex = (readIndex + 1) % capacity   // overflow → drop oldest
+                // Overflow → advance read so we drop oldest, never block writer.
+                readIndex = (readIndex + 1) % capacity
             }
         }
     }
 
-    func read(into dest: inout [Int16], count: Int) -> Int {
+    /// Atomically pull up to `maxSamples` samples; returns however many were
+    /// actually available. Empty array on underrun (the source node will pad
+    /// with silence). The lock here is brief — a memcpy at worst — and held
+    /// on the audio thread for tens of microseconds in practice.
+    func copyOut(maxSamples: Int) -> [Int16] {
         lock.lock(); defer { lock.unlock() }
-        var copied = 0
-        while copied < count && readIndex != writeIndex {
-            dest[copied] = buffer[readIndex]
+        let available: Int = {
+            if writeIndex >= readIndex { return writeIndex - readIndex }
+            return capacity - readIndex + writeIndex
+        }()
+        let n = min(available, maxSamples)
+        guard n > 0 else { return [] }
+
+        var out = [Int16](repeating: 0, count: n)
+        for i in 0..<n {
+            out[i] = buffer[readIndex]
             readIndex = (readIndex + 1) % capacity
-            copied += 1
         }
-        return copied
+        return out
     }
 
     func reset() {
