@@ -32,6 +32,19 @@ final class CoreBridgeWrapper {
     func resetCore()  { rn_core_reset() }
     func runFrame()   { rn_core_run_frame() }
 
+    // MARK: AV info (populated after a successful loadCore)
+
+    /// Native audio sample rate reported by the core, in Hz. 0 if no core loaded.
+    var audioSampleRate: Double { rn_audio_sample_rate() }
+
+    /// Native frame rate reported by the core (e.g. SNES NTSC ≈ 60.0988).
+    var videoFPS: Double { rn_video_fps() }
+
+    /// Base output resolution reported by the core after retro_load_game.
+    var videoBaseSize: (width: Int, height: Int) {
+        (Int(rn_video_base_width()), Int(rn_video_base_height()))
+    }
+
     // MARK: Input
 
     func handleInput(_ action: GamepadAction) {

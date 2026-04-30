@@ -26,8 +26,15 @@ targets:
     sources:
       - path: Sources
       - path: Resources
+        excludes:
+          # Cores are embedded into Frameworks/ via the post-build script
+          # below, NOT copied as plain resources — that path lets us code-sign
+          # them with the app's identity so iOS will dlopen them at runtime.
+          - "Cores/**"
     resources:
-      - Resources
+      - path: Resources
+        excludes:
+          - "Cores/**"
     info:
       path: Resources/Info.plist
       properties:
@@ -71,3 +78,43 @@ targets:
       - sdk: AVFoundation.framework
       - sdk: UIKit.framework
       - sdk: SwiftUI.framework
+    postBuildScripts:
+      - name: "Embed and Sign Libretro Cores"
+        runOnlyWhenInstalling: false
+        shell: /bin/bash
+        script: |
+          set -e
+          SRC_DIR="${SRCROOT}/Resources/Cores"
+          DEST_DIR="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+
+          if [ ! -d "$SRC_DIR" ]; then
+            echo "warning: ${SRC_DIR} does not exist — no cores to embed"
+            exit 0
+          fi
+
+          mkdir -p "$DEST_DIR"
+          shopt -s nullglob
+          dylibs=("$SRC_DIR"/*.dylib)
+
+          if [ ${#dylibs[@]} -eq 0 ]; then
+            echo "warning: no .dylib files in ${SRC_DIR}"
+            exit 0
+          fi
+
+          for dylib in "${dylibs[@]}"; do
+            name=$(basename "$dylib")
+            echo "Embedding libretro core: $name"
+            cp -f "$dylib" "$DEST_DIR/$name"
+
+            if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && \
+               [ "${EXPANDED_CODE_SIGN_IDENTITY}" != "-" ]; then
+              codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY}" \
+                ${OTHER_CODE_SIGN_FLAGS:-} \
+                --timestamp=none \
+                "$DEST_DIR/$name"
+            else
+              # Simulator / no-team builds — ad-hoc signature is enough to
+              # let dlopen succeed on the device's developer-disk image.
+              codesign --force --sign - "$DEST_DIR/$name"
+            fi
+          done

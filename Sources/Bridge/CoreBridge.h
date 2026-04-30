@@ -64,6 +64,16 @@ bool    rn_state_save(void* buffer, size_t size);
 bool    rn_state_load(const void* buffer, size_t size);
 
 // ---------------------------------------------------------------------------
+// AV info — populated by retro_get_system_av_info after a successful load.
+// Sample rate is forwarded to AVAudioEngine so we can match the core's native
+// rate (SNES9x is 32040 Hz, GB/A 32768 Hz, etc.) instead of resampling blindly.
+// ---------------------------------------------------------------------------
+double  rn_audio_sample_rate(void);   // returns 0 before a core has loaded
+double  rn_video_fps(void);           // e.g. 60.0988 for NTSC SNES
+int     rn_video_base_width(void);
+int     rn_video_base_height(void);
+
+// ---------------------------------------------------------------------------
 // Video frame callback registration
 // ---------------------------------------------------------------------------
 typedef void (*RNVideoCallback)(const RNPixelBuffer* frame, void* userdata);

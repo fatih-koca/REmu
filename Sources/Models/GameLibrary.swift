@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 // MARK: - Console System
 
 enum ConsoleSystem: String, Codable, CaseIterable {
+    case snes      = "Super Nintendo"
     case ps1       = "PlayStation"
     case ps2       = "PlayStation 2"
     case n64       = "Nintendo 64"
@@ -12,6 +13,7 @@ enum ConsoleSystem: String, Codable, CaseIterable {
 
     var fileExtensions: [String] {
         switch self {
+        case .snes:     return ["smc", "sfc", "fig", "swc"]
         case .ps1:      return ["bin", "cue", "iso", "img"]
         case .ps2:      return ["iso", "bin"]
         case .n64:      return ["z64", "n64", "v64"]
@@ -20,8 +22,11 @@ enum ConsoleSystem: String, Codable, CaseIterable {
         }
     }
 
+    /// Matches the on-disk core filename: <coreIdentifier>_libretro_ios.dylib
+    /// e.g. snes9x_libretro_ios.dylib for the SNES core.
     var coreIdentifier: String {
         switch self {
+        case .snes:     return "snes9x"
         case .ps1:      return "mednafen_psx"
         case .ps2:      return "pcsx2"
         case .n64:      return "mupen64plus_next"
@@ -32,6 +37,7 @@ enum ConsoleSystem: String, Codable, CaseIterable {
 
     var systemIcon: String {
         switch self {
+        case .snes:     return "gamecontroller"
         case .ps1:      return "gamecontroller.fill"
         case .ps2:      return "gamecontroller"
         case .n64:      return "cube.fill"

@@ -241,11 +241,21 @@ final class MetalGameViewController: UIViewController {
             CoreBridgeWrapper.shared.handleInput(action)
         }
 
+        // AudioEngine reads the core's native sample rate (rn_audio_sample_rate)
+        // when start() runs, so it MUST come after a successful loadCore.
         AudioEngine.shared.start()
 
-        // CADisplayLink: 60 Hz emulator run loop
+        // Match the core's reported FPS — SNES NTSC ≈ 60.0988, PAL ≈ 50, etc.
+        // CADisplayLink will round to the nearest panel rate; the AV-info value
+        // is the upper bound we ask for.
+        let coreFPS = CoreBridgeWrapper.shared.videoFPS
+        let preferred = coreFPS > 0 ? Float(coreFPS) : 60
         let link = CADisplayLink(target: self, selector: #selector(tick))
-        link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 120, preferred: 60)
+        link.preferredFrameRateRange = CAFrameRateRange(
+            minimum: 30,
+            maximum: 120,
+            preferred: preferred
+        )
         link.add(to: .main, forMode: .common)
         self.displayLink = link
 
