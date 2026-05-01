@@ -51,9 +51,10 @@ targets:
         UIRequiresFullScreen: true
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
-        UIBackgroundModes:
-          - audio
-        NSMicrophoneUsageDescription: "Used for emulator audio processing."
+        # No UIBackgroundModes — when the user backgrounds the app we want
+        # iOS to auto-pause our AVAudioSession so the speaker stops cleanly.
+        # Previously declaring "audio" kept the engine running and the user
+        # heard the game music continue until they killed the app.
         CFBundleDocumentTypes:
           - CFBundleTypeName: "ROM File"
             LSHandlerRank: Alternate

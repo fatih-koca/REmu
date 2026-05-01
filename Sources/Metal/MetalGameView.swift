@@ -21,7 +21,18 @@ struct EmulatorScreenView: View {
 
             ZStack {
                 Color.black
-                MetalViewRepresentable(rom: rom)
+                // Insets need to reach the renderer so it can keep the game
+                // off the rounded corners + home-indicator area. Bumped up
+                // by hPad so the game doesn't overlap the on-screen controls.
+                MetalViewRepresentable(
+                    rom: rom,
+                    safeAreaInsets: EdgeInsets(
+                        top:      max(inset.top,    4),
+                        leading:  inset.leading  + hPad + 110,  // ≈ left column width
+                        bottom:   max(inset.bottom, 4) + 50,    // ad strip + breathing room
+                        trailing: inset.trailing + hPad + 114   // ≈ right column width
+                    )
+                )
 
                 // Top + Bottom strips
                 VStack(spacing: 0) {
@@ -159,14 +170,20 @@ struct EmulatorScreenView: View {
 
 struct MetalViewRepresentable: UIViewControllerRepresentable {
     let rom: ROMEntry
+    let safeAreaInsets: EdgeInsets
 
     func makeUIViewController(context: Context) -> MetalGameViewController {
         let vc = MetalGameViewController()
         vc.rom = rom
+        vc.applySafeAreaInsets(safeAreaInsets)
         return vc
     }
 
-    func updateUIViewController(_ uiViewController: MetalGameViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: MetalGameViewController, context: Context) {
+        // Insets shift when the device rotates or the on-screen keyboard
+        // appears; forward every update to the renderer.
+        uiViewController.applySafeAreaInsets(safeAreaInsets)
+    }
 }
 
 // MARK: - Metal View Controller
@@ -178,11 +195,33 @@ final class MetalGameViewController: UIViewController {
     private var renderer: MetalRenderer!
     private var displayLink: CADisplayLink?
 
+    /// Buffered insets from SwiftUI — applied on the renderer if it's already
+    /// up, otherwise stashed and replayed at setupMetal() time.
+    private var pendingInsets: EdgeInsets = EdgeInsets()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
         setupMetal()
+        renderer.safeInsetsPt = (
+            top:      pendingInsets.top,
+            leading:  pendingInsets.leading,
+            bottom:   pendingInsets.bottom,
+            trailing: pendingInsets.trailing
+        )
         startEmulation()
+    }
+
+    /// Called by MetalViewRepresentable on every SwiftUI state update so the
+    /// renderer's letterbox stays aligned with the current safe-area geometry.
+    func applySafeAreaInsets(_ insets: EdgeInsets) {
+        pendingInsets = insets
+        renderer?.safeInsetsPt = (
+            top:      insets.top,
+            leading:  insets.leading,
+            bottom:   insets.bottom,
+            trailing: insets.trailing
+        )
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -286,6 +325,13 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
     private var texture: MTLTexture?
     private var vertexBuffer: MTLBuffer!
 
+    /// Safe-area insets in POINTS, set from SwiftUI. We respect them when
+    /// computing the aspect-fit rectangle so the game stays out of the
+    /// rounded-corner / Dynamic-Island / home-indicator regions on iPhone
+    /// — content was visibly clipping at the bottom edge before this.
+    var safeInsetsPt: (top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) =
+        (0, 0, 0, 0)
+
     // Capacity: 4 vertices × (xy + uv) × 4 bytes — re-written each draw call to
     // keep the game letterboxed inside the drawable as the device rotates or
     // multitasks. Backed by .storageModeShared so we can memcpy directly.
@@ -302,32 +348,64 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         )
     }
 
-    /// Recompute clip-space corners for an aspect-fit quad so the game
-    /// pixels keep their native ratio (SNES 256×224 → ~8:7) regardless of
-    /// the iPhone/iPad display they're rendered on. The letterbox / pillarbox
-    /// area falls back to the MTKView's clear color (black).
-    private func updateVertexBuffer(viewSize: CGSize, textureWidth: Int, textureHeight: Int) {
+    /// Aspect-fit the game texture inside (drawable − safe-area insets).
+    /// We compute everything in PIXEL space then map to clip space at the
+    /// end so the math stays straightforward and asymmetric insets (a notch
+    /// only on the leading edge in landscape) center correctly.
+    private func updateVertexBuffer(viewSize: CGSize,
+                                    contentScale: CGFloat,
+                                    textureWidth: Int,
+                                    textureHeight: Int) {
         guard viewSize.width > 0, viewSize.height > 0,
               textureWidth > 0, textureHeight > 0 else { return }
 
-        let viewAR = Float(viewSize.width)  / Float(viewSize.height)
-        let texAR  = Float(textureWidth)    / Float(textureHeight)
+        // drawableSize is in pixels; safe-area insets are in points.
+        // Multiply insets by the device scale so we can subtract directly.
+        let s = Float(contentScale)
+        let topPx     = Float(safeInsetsPt.top)      * s
+        let leadPx    = Float(safeInsetsPt.leading)  * s
+        let botPx     = Float(safeInsetsPt.bottom)   * s
+        let trailPx   = Float(safeInsetsPt.trailing) * s
 
-        var sx: Float = 1
-        var sy: Float = 1
-        if texAR > viewAR {
-            // Game is wider than the view — fit width, letterbox top/bottom.
-            sy = viewAR / texAR
-        } else {
-            // Game is taller (or equal) — fit height, pillarbox left/right.
-            sx = texAR / viewAR
+        let viewW = Float(viewSize.width)
+        let viewH = Float(viewSize.height)
+
+        // Effective canvas the game is allowed to occupy.
+        let availW = max(viewW - leadPx - trailPx, 1)
+        let availH = max(viewH - topPx  - botPx,   1)
+
+        // Aspect-fit texture into that canvas.
+        let texAR  = Float(textureWidth) / Float(textureHeight)
+        var fitW   = availW
+        var fitH   = availW / texAR
+        if fitH > availH {
+            fitH = availH
+            fitW = availH * texAR
         }
 
+        // Center the fit rect inside the SAFE canvas (which itself is offset
+        // from the view origin by the leading / top insets).
+        let cx = leadPx + availW * 0.5
+        let cy = topPx  + availH * 0.5
+        let left   = cx - fitW * 0.5
+        let right  = cx + fitW * 0.5
+        let topPos = cy - fitH * 0.5
+        let botPos = cy + fitH * 0.5
+
+        // Convert pixel coords → clip space (-1..+1, +Y up).
+        func toClipX(_ px: Float) -> Float { (px / viewW) * 2 - 1 }
+        func toClipY(_ py: Float) -> Float { 1 - (py / viewH) * 2 }
+
+        let cl = toClipX(left)
+        let cr = toClipX(right)
+        let ct = toClipY(topPos)
+        let cb = toClipY(botPos)
+
         let verts: [Float] = [
-            -sx,  sy, 0, 0,
-             sx,  sy, 1, 0,
-            -sx, -sy, 0, 1,
-             sx, -sy, 1, 1,
+            cl, ct, 0, 0,    // top-left
+            cr, ct, 1, 0,    // top-right
+            cl, cb, 0, 1,    // bottom-left
+            cr, cb, 1, 1,    // bottom-right
         ]
         memcpy(vertexBuffer.contents(), verts,
                verts.count * MemoryLayout<Float>.stride)
@@ -363,9 +441,11 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
             let texture
         else { return }
 
-        // Aspect-fit the game inside whatever drawable size the OS gave us.
+        // Aspect-fit the game inside whatever drawable size the OS gave us,
+        // minus the safe-area insets we received from SwiftUI.
         updateVertexBuffer(
             viewSize: view.drawableSize,
+            contentScale: view.contentScaleFactor,
             textureWidth: texture.width,
             textureHeight: texture.height
         )

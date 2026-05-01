@@ -46,9 +46,12 @@ final class AudioEngine {
         }
         self.format = fmt
 
-        // ~0.5 s of stereo headroom — enough to absorb display-link jitter
-        // without lagging the speaker behind on-screen action.
-        ringBuffer = RingBuffer(capacity: Int(sampleRate) * 2 / 2)
+        // ~2 s of stereo headroom (sampleRate × 2 channels × 2 seconds).
+        // Larger than strictly needed for steady-state, but iOS can stall the
+        // main thread for ~1 s during a screenshot capture — bigger buffer
+        // means the AVAudioSourceNode keeps pulling real samples through that
+        // window instead of falling through to silence.
+        ringBuffer = RingBuffer(capacity: Int(sampleRate * 4))
 
         configureAudioSession()
 
