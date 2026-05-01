@@ -29,12 +29,13 @@ struct EmulatorScreenView: View {
                     safeAreaInsets: EdgeInsets(
                         top:      max(inset.top,    4),
                         leading:  inset.leading  + hPad + 110,  // ≈ left column width
-                        bottom:   max(inset.bottom, 4) + 50,    // ad strip + breathing room
+                        bottom:   max(inset.bottom, 4) + 8,     // small breathing room
                         trailing: inset.trailing + hPad + 114   // ≈ right column width
                     )
                 )
 
-                // Top + Bottom strips
+                // Top strip only — bottom ad strip removed for now,
+                // can be reintroduced when the AdMob SDK is wired in.
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
                         title: rom.title,
@@ -43,7 +44,6 @@ struct EmulatorScreenView: View {
                         onPause: { showMenu.toggle() }
                     )
                     Spacer(minLength: 0)
-                    AdBottomStrip()
                 }
                 .padding(.leading,  inset.leading  + hPad)
                 .padding(.trailing, inset.trailing + hPad)

@@ -58,10 +58,6 @@ struct ContentView: View {
 
     private var libraryView: some View {
         VStack(spacing: 0) {
-            // AdMob Banner placeholder — replace with GADBannerView bridge
-            AdBannerPlaceholder()
-                .frame(height: 50)
-
             HStack(spacing: 16) {
                 Text("REmu")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
@@ -297,16 +293,3 @@ struct ROMDocumentPicker: UIViewControllerRepresentable {
     }
 }
 
-// MARK: - AdMob Banner Placeholder
-
-struct AdBannerPlaceholder: View {
-    var body: some View {
-        // Replace with GADBannerViewRepresentable once AdMob SDK is integrated
-        ZStack {
-            Color.white.opacity(0.03)
-            Text("[ AdMob Banner — 320×50 ]")
-                .font(.caption2)
-                .foregroundColor(.gray.opacity(0.4))
-        }
-    }
-}

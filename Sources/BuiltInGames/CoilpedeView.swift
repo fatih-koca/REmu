@@ -29,7 +29,7 @@ struct CoilpedeView: View {
                 Color.black
                 arenaView
 
-                // Top + Bottom strips
+                // Top strip only — bottom ad strip removed for now.
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
                         title: "Coilpede",
@@ -44,7 +44,6 @@ struct CoilpedeView: View {
                         }
                     )
                     Spacer(minLength: 0)
-                    AdBottomStrip()
                 }
                 .padding(.leading,  inset.leading  + hPad)
                 .padding(.trailing, inset.trailing + hPad)

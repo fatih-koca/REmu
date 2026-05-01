@@ -74,29 +74,3 @@ struct GameInfoTopStrip: View {
     }
 }
 
-// MARK: - Ad Bottom Strip
-//
-// Horizontal AdMob banner placeholder strip pinned to the bottom of any
-// in-game screen. Replace with a GADBannerView bridge once the AdMob
-// SDK is integrated.
-
-struct AdBottomStrip: View {
-    var body: some View {
-        ZStack {
-            // Fades from transparent into solid black at the very bottom
-            LinearGradient(
-                colors: [
-                    Color.black.opacity(0.0),
-                    Color.black.opacity(0.78),
-                ],
-                startPoint: .top, endPoint: .bottom
-            )
-            Text("[ AdMob Banner ]")
-                .font(.system(size: 10, weight: .bold))
-                .tracking(2)
-                .foregroundColor(.gray.opacity(0.55))
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 36)
-    }
-}
