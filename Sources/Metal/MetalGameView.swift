@@ -27,9 +27,15 @@ struct EmulatorScreenView: View {
                 MetalViewRepresentable(
                     rom: rom,
                     safeAreaInsets: EdgeInsets(
-                        top:      max(inset.top,    4),
+                        // Reserve the GameInfoTopStrip's 50pt height so the
+                        // game doesn't render behind it — SMW's HUD (MARIO x5,
+                        // TIME, coin counter) was previously hidden under the
+                        // title text. The +8 matches the bottom breathing
+                        // room so the framing reads as balanced even though
+                        // the home indicator is smaller than the strip.
+                        top:      max(inset.top,    4) + 50,
                         leading:  inset.leading  + hPad + 110,  // ≈ left column width
-                        bottom:   max(inset.bottom, 4) + 8,     // small breathing room
+                        bottom:   max(inset.bottom, 4) + 8,
                         trailing: inset.trailing + hPad + 114   // ≈ right column width
                     )
                 )
