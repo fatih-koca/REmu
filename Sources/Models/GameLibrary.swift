@@ -208,7 +208,13 @@ final class ROMLibrary: ObservableObject {
             DispatchQueue.main.async { [weak self] in self?.add(rom) }
         }
 
-        if needsOnline {
+        // Online cover-art lookup is opt-in. The Settings toggle
+        // ('remu.library.autoDownloadCovers') ships in the App Store prep
+        // PR; default OFF on a fresh install means no network call until
+        // the user explicitly enables it.
+        let autoDownloadEnabled = UserDefaults.standard
+            .bool(forKey: "remu.library.autoDownloadCovers")
+        if needsOnline, autoDownloadEnabled {
             ROMArtworkExtractor.fetchOnline(
                 title: title, console: romConsole, id: romID
             ) { [weak self] url in
@@ -229,9 +235,12 @@ final class ROMLibrary: ObservableObject {
 
     /// Backfills missing cover art for ROMs that were imported before
     /// artwork extraction existed. Cheap to call repeatedly — entries
-    /// that already have a valid cover are skipped.
+    /// that already have a valid cover are skipped. Online lookups gate
+    /// on the same Settings toggle as the import flow.
     func backfillMissingCovers() {
         var changed = false
+        let autoDownloadEnabled = UserDefaults.standard
+            .bool(forKey: "remu.library.autoDownloadCovers")
         for index in roms.indices {
             if roms[index].coverURL != nil { continue }
             if let url = ROMArtworkExtractor.extractFromFile(
@@ -243,6 +252,7 @@ final class ROMLibrary: ObservableObject {
                 changed = true
                 continue
             }
+            guard autoDownloadEnabled else { continue }
             let romID = roms[index].id
             let title = roms[index].title
             let console = roms[index].console
