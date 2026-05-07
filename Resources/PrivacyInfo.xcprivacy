@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        REmu privacy manifest.
+        We do NOT track users, do NOT collect any data off-device, and do
+        NOT contact any analytics, ad, or attribution networks. The only
+        outbound network call is an optional cover-art lookup to
+        raw.githubusercontent.com (libretro-thumbnails project), which
+        carries no user identifier and is unrelated to advertising or
+        tracking.
+    -->
+
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!--
+            UserDefaults: stores the EULA-acceptance flag and the local
+            high-score for the built-in Coilpede demo. Only the app itself
+            reads or writes this storage.
+        -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPIReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
