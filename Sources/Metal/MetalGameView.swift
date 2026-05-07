@@ -89,6 +89,8 @@ struct EmulatorScreenView: View {
                 // can be reintroduced when the AdMob SDK is wired in.
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
+                        title: rom.title,
+                        subtitle: rom.console.rawValue,
                         stats: [("FPS", "60")],
                         onPause: { showMenu.toggle() }
                     )
