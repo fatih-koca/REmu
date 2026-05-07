@@ -32,8 +32,6 @@ struct CoilpedeView: View {
                 // Top strip only — bottom ad strip removed for now.
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
-                        title: "Coilpede",
-                        subtitle: "BUILT-IN",
                         stats: [
                             ("SCORE", "\(game.score)"),
                             ("BEST",  "\(game.highScore)"),
@@ -45,8 +43,11 @@ struct CoilpedeView: View {
                     )
                     Spacer(minLength: 0)
                 }
-                .padding(.leading,  inset.leading  + hPad)
-                .padding(.trailing, inset.trailing + hPad)
+                // Hug the corners harder than the controls overlay — the
+                // top strip only needs Dynamic Island clearance, not the
+                // 18pt cushion the dpad uses.
+                .padding(.leading,  inset.leading  + 4)
+                .padding(.trailing, inset.trailing + 4)
                 .padding(.top,      max(inset.top,    4))
                 .padding(.bottom,   max(inset.bottom, 4))
 
@@ -312,9 +313,10 @@ struct CoilpedeView: View {
             Spacer(minLength: 8)
         }
         .padding(.top, 10)
-        .padding(.bottom, 56)        // lift dpad ~20% upward
+        .padding(.bottom, 16)        // lower dpad further toward bottom edge
         .frame(maxHeight: .infinity)
         .frame(width: 110)
+        .offset(x: -10, y: 30)        // sink dpad lower than before
     }
 
     private var coilpedeRightColumn: some View {
@@ -333,20 +335,21 @@ struct CoilpedeView: View {
         }
         .frame(maxHeight: .infinity)
         .frame(width: 64)
+        .offset(x: 28)                 // push hint label closer to right edge
     }
 
     private var dpadView: some View {
         ZStack {
             Circle()
                 .fill(Color.white.opacity(0.05))
-                .frame(width: 20, height: 20)
+                .frame(width: 18, height: 18)
 
-            dpadArrow(.up)    .offset(y: -46)
-            dpadArrow(.down)  .offset(y:  46)
-            dpadArrow(.left)  .offset(x: -46)
-            dpadArrow(.right) .offset(x:  46)
+            dpadArrow(.up)    .offset(y: -41)
+            dpadArrow(.down)  .offset(y:  41)
+            dpadArrow(.left)  .offset(x: -41)
+            dpadArrow(.right) .offset(x:  41)
         }
-        .frame(width: 132, height: 132)
+        .frame(width: 119, height: 119)   // 10% smaller than 132pt
     }
 
     private func dpadArrow(_ dir: CoilpedeDirection) -> some View {
@@ -355,9 +358,9 @@ struct CoilpedeView: View {
             game.queueDirection(dir)
         } label: {
             Image(systemName: arrowSystem(dir))
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 14, weight: .bold))
                 .foregroundColor(.white)
-                .frame(width: 44, height: 44)
+                .frame(width: 40, height: 40)
                 .background(Circle().fill(Color.white.opacity(0.14)))
                 .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
         }

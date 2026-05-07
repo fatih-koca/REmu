@@ -56,6 +56,7 @@ struct ROMEntry: Identifiable, Codable, Hashable {
     var filePath: URL
     var lastPlayed: Date?
     var hasSaveState: Bool
+    var coverFilename: String?
 
     init(title: String, console: ConsoleSystem, filePath: URL) {
         self.id = UUID()
@@ -63,6 +64,13 @@ struct ROMEntry: Identifiable, Codable, Hashable {
         self.console = console
         self.filePath = filePath
         self.hasSaveState = false
+        self.coverFilename = nil
+    }
+
+    var coverURL: URL? {
+        guard let name = coverFilename else { return nil }
+        let url = ROMArtworkExtractor.coversDirectory().appendingPathComponent(name)
+        return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 }
 
@@ -172,11 +180,25 @@ final class ROMLibrary: ObservableObject {
             return existing
         }
 
-        let rom = ROMEntry(
+        var rom = ROMEntry(
             title: workingURL.deletingPathExtension().lastPathComponent,
             console: console,
             filePath: workingURL
         )
+
+        // Cheap, synchronous embedded-art pass (PSP PBP/ISO, GameCube
+        // banner). If nothing comes out, kick off an async fetch from the
+        // libretro-thumbnails project below.
+        if let coverURL = ROMArtworkExtractor.extractFromFile(
+            for: workingURL, console: console, id: rom.id
+        ) {
+            rom.coverFilename = coverURL.lastPathComponent
+        }
+
+        let needsOnline = rom.coverFilename == nil
+        let romID = rom.id
+        let title = rom.title
+        let romConsole = rom.console
 
         // Library is observed by SwiftUI views, so this update must happen
         // on the main actor.
@@ -185,7 +207,55 @@ final class ROMLibrary: ObservableObject {
         } else {
             DispatchQueue.main.async { [weak self] in self?.add(rom) }
         }
+
+        if needsOnline {
+            ROMArtworkExtractor.fetchOnline(
+                title: title, console: romConsole, id: romID
+            ) { [weak self] url in
+                guard let url else { return }
+                DispatchQueue.main.async {
+                    self?.attachCover(filename: url.lastPathComponent, to: romID)
+                }
+            }
+        }
         return rom
+    }
+
+    private func attachCover(filename: String, to romID: UUID) {
+        guard let i = roms.firstIndex(where: { $0.id == romID }) else { return }
+        roms[i].coverFilename = filename
+        save()
+    }
+
+    /// Backfills missing cover art for ROMs that were imported before
+    /// artwork extraction existed. Cheap to call repeatedly — entries
+    /// that already have a valid cover are skipped.
+    func backfillMissingCovers() {
+        var changed = false
+        for index in roms.indices {
+            if roms[index].coverURL != nil { continue }
+            if let url = ROMArtworkExtractor.extractFromFile(
+                for: roms[index].filePath,
+                console: roms[index].console,
+                id: roms[index].id
+            ) {
+                roms[index].coverFilename = url.lastPathComponent
+                changed = true
+                continue
+            }
+            let romID = roms[index].id
+            let title = roms[index].title
+            let console = roms[index].console
+            ROMArtworkExtractor.fetchOnline(
+                title: title, console: console, id: romID
+            ) { [weak self] url in
+                guard let url else { return }
+                DispatchQueue.main.async {
+                    self?.attachCover(filename: url.lastPathComponent, to: romID)
+                }
+            }
+        }
+        if changed { save() }
     }
 
     private func save() {

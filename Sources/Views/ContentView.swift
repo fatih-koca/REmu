@@ -43,6 +43,7 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
+        .onAppear { library.backfillMissingCovers() }
         .onReceive(
             NotificationCenter.default.publisher(for: .remuShouldLaunchROM)
         ) { note in
@@ -172,8 +173,8 @@ struct ContentView: View {
             .padding(.top, 18)
 
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 160, maximum: 200), spacing: 16)],
-                spacing: 16
+                columns: [GridItem(.adaptive(minimum: 130, maximum: 170), spacing: 12)],
+                spacing: 14
             ) {
                 ForEach(library.roms) { rom in
                     ROMCard(rom: rom) {
@@ -184,7 +185,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
         }
     }
 
@@ -218,14 +220,24 @@ struct ROMCard: View {
     var body: some View {
         Button(action: onLaunch) {
             VStack(alignment: .leading, spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white.opacity(0.05))
-                        .frame(height: 100)
-                    Image(systemName: rom.console.systemIcon)
-                        .font(.system(size: 36))
-                        .foregroundColor(.blue.opacity(0.7))
-                }
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.white.opacity(0.05))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 100)
+                    .overlay(
+                        Group {
+                            if let cover = coverImage {
+                                Image(uiImage: cover)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } else {
+                                Image(systemName: rom.console.systemIcon)
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.blue.opacity(0.7))
+                            }
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 Text(rom.title)
                     .font(.caption)
@@ -264,6 +276,12 @@ struct ROMCard: View {
             }
         }
     }
+
+    private var coverImage: UIImage? {
+        guard let url = rom.coverURL,
+              let data = try? Data(contentsOf: url) else { return nil }
+        return UIImage(data: data)
+    }
 }
 
 // MARK: - Document Picker
@@ -292,4 +310,3 @@ struct ROMDocumentPicker: UIViewControllerRepresentable {
         }
     }
 }
-

@@ -34,6 +34,7 @@ struct RetroNexusApp: App {
 // when the version suffix is bumped).
 private struct RootView: View {
     @AppStorage("remu.eula.accepted.v1") private var hasAcceptedEULA = false
+    @State private var showingSplash = true
 
     var body: some View {
         ZStack {
@@ -46,6 +47,18 @@ private struct RootView: View {
                     }
                 }
                 .transition(.opacity)
+            }
+
+            // Splash sits on top of everything so the user sees it first;
+            // it auto-dismisses with a fade after a couple seconds.
+            if showingSplash {
+                SplashScreenView {
+                    withAnimation(.easeInOut(duration: 0.45)) {
+                        showingSplash = false
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(10)
             }
         }
     }

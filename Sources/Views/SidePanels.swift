@@ -7,40 +7,27 @@ import SwiftUI
 // number of stat pairs (FPS, SCORE, BEST, …) aligned to the right.
 
 struct GameInfoTopStrip: View {
-    let title: String
-    let subtitle: String?
     let stats: [(String, String)]
     let onPause: (() -> Void)?
 
     init(
-        title: String,
-        subtitle: String? = nil,
         stats: [(String, String)] = [],
         onPause: (() -> Void)? = nil
     ) {
-        self.title = title
-        self.subtitle = subtitle
         self.stats = stats
         self.onPause = onPause
     }
 
     var body: some View {
         HStack(spacing: 18) {
-            VStack(alignment: .leading, spacing: 1) {
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.orange)
-                        .tracking(0.8)
-                }
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
+            // Pause button — moved to the left side
+            if let onPause {
+                PauseButton(onPause: onPause)
             }
 
             Spacer()
 
+            // FPS (and any other stat) stays on the right
             ForEach(stats.indices, id: \.self) { i in
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(stats[i].0)
@@ -53,19 +40,17 @@ struct GameInfoTopStrip: View {
                         .monospacedDigit()
                 }
             }
-
-            if let onPause {
-                PauseButton(onPause: onPause)
-            }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 8)
         .frame(height: 50)
         .frame(maxWidth: .infinity)
         .background(
-            // Solid at top, fades into the game underneath
+            // Light wash so pause/FPS chips remain readable while the game
+            // pixels stay visible underneath. Faded to nothing at the bottom
+            // edge so the transition into the canvas is invisible.
             LinearGradient(
                 colors: [
-                    Color.black.opacity(0.78),
+                    Color.black.opacity(0.32),
                     Color.black.opacity(0.0),
                 ],
                 startPoint: .top, endPoint: .bottom
