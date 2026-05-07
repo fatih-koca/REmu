@@ -83,7 +83,7 @@ struct EULAView: View {
             section(
                 icon: "books.vertical",
                 title: "1. No Bundled Games or BIOS",
-                body: "REmu does not provide, distribute, or include any commercial game ROMs, BIOS files, or other copyrighted content. The only software bundled with this application is the original Coilpede demo and the emulation framework itself."
+                body: "REmu does not provide, distribute, or include any commercial game ROMs, BIOS files, or other copyrighted content. The only software bundled with this application is the original Glowchase demo and the emulation framework itself."
             )
 
             section(
@@ -108,6 +108,12 @@ struct EULAView: View {
                 icon: "exclamationmark.triangle",
                 title: "5. No Warranty",
                 body: "REmu is provided \"as-is\" without warranty of any kind, express or implied. The developer is not liable for any damages, data loss, or legal consequences arising from your use of this software or any content you choose to load into it."
+            )
+
+            section(
+                icon: "rosette",
+                title: "6. Trademarks & Affiliation",
+                body: "REmu is an independent project and is not affiliated with, endorsed by, or sponsored by Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation, or any other console manufacturer. All trademarks, product names, console designs, and logos are the property of their respective owners. References to console identifiers within the application are made for technical interoperability only."
             )
         }
     }

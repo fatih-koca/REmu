@@ -14,6 +14,13 @@ struct SettingsView: View {
     @State private var showingTerms = false
     @State private var showingPrivacy = false
 
+    /// Default OFF on a fresh install. The lookup hits a public GitHub
+    /// repo (libretro-thumbnails) and fetches a public-domain image keyed
+    /// on the ROM filename; nothing about the user is transmitted, but
+    /// the most defensive App Store posture is to make it opt-in.
+    @AppStorage("remu.library.autoDownloadCovers")
+    private var autoDownloadCovers: Bool = false
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -21,6 +28,7 @@ struct SettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
+                        librarySection
                         legalSection
                         aboutSection
                         Spacer(minLength: 20)
@@ -49,6 +57,33 @@ struct SettingsView: View {
     }
 
     // MARK: Sections
+
+    private var librarySection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(icon: "photo.on.rectangle", label: "LIBRARY", tint: .blue)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 14) {
+                    iconCell(systemName: "icloud.and.arrow.down", tint: .blue)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Auto-download cover art")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        Text("Fetches public box art from GitHub when a ROM has no embedded cover. Off by default.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $autoDownloadCovers)
+                        .labelsHidden()
+                        .tint(.orange)
+                }
+                .padding(14)
+            }
+            .background(rowGroupBackground)
+        }
+    }
 
     private var legalSection: some View {
         VStack(alignment: .leading, spacing: 8) {

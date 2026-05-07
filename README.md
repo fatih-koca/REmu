@@ -20,7 +20,7 @@ open REmu.xcodeproj
 - **Audio**: AVAudioEngine + lock-free ring buffer
 - **Input**: Dokunmatik gamepad + MFi/DualSense/Xbox (GameController framework)
 - **State**: FileManager-based save states + BIOS klasörü
-- **Built-in Games**: Coilpede (özgün, telifsiz yılan/kırkayak demo)
+- **Built-in Games**: Glowchase (özgün, telifsiz yılan demo)
 
 ## Proje Ağacı
 ```
@@ -32,7 +32,7 @@ REmu/
 │   ├── Bridge/        # CoreBridge.mm + bridging header
 │   ├── Managers/      # Audio, SaveState, GameController
 │   ├── Models/        # ROM library, ConsoleSystem
-│   └── BuiltInGames/  # Coilpede — native SwiftUI demo
+│   └── BuiltInGames/  # Glowchase — native SwiftUI demo
 ├── Resources/
 │   ├── Info.plist
 │   ├── Entitlements
@@ -44,7 +44,9 @@ REmu/
 ```
 
 ## Lisans
-[GPL v3](LICENSE) — Libretro çekirdekleriyle uyumlu.
+[MIT](LICENSE) — uygulama kaynak kodu MIT altında. Opsiyonel Libretro
+çekirdekleri kendi lisansları (GPL v2 / v3) altında dağıtılır, bu repo'ya
+commit edilmez; `fetch-cores.sh` ile kendi sorumluluğunda indirilir.
 
 ## Yasal Uyarı
 Bu uygulama ROM veya BIOS dosyası **içermez**. Sadece kendi sahip olduğun

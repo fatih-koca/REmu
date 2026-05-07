@@ -45,7 +45,7 @@ struct EmulatorScreenView: View {
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
                         title: rom.title,
-                        subtitle: rom.console.rawValue,
+                        subtitle: rom.console.displayName,
                         stats: [("FPS", "60")],
                         onPause: { showMenu.toggle() }
                     )
@@ -127,7 +127,7 @@ struct EmulatorScreenView: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("\(rom.console.rawValue) için Libretro çekirdeği (\(rom.console.coreIdentifier)) henüz uygulamaya gömülü değil.\n\nROM kütüphanen sorunsuz, ancak gerçek emülasyon için core .dylib dosyalarını uygulamaya eklemen gerekiyor.\n\nŞu an Coilpede demosu sorunsuz oynanır.")
+                Text("\(rom.console.displayName) için Libretro çekirdeği (\(rom.console.coreIdentifier)) henüz uygulamaya gömülü değil.\n\nROM kütüphanen sorunsuz, ancak gerçek emülasyon için core .dylib dosyalarını uygulamaya eklemen gerekiyor.\n\nŞu an Glowchase demosu sorunsuz oynanır.")
                     .font(.footnote)
                     .foregroundColor(.white.opacity(0.75))
                     .multilineTextAlignment(.center)
@@ -526,7 +526,7 @@ struct InGameMenuView: View {
             Text(rom.title)
                 .font(.headline)
                 .foregroundColor(.white)
-            Text(rom.console.rawValue)
+            Text(rom.console.displayName)
                 .font(.caption)
                 .foregroundColor(.gray)
         }
