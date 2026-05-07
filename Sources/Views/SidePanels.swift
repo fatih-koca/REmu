@@ -7,22 +7,48 @@ import SwiftUI
 // number of stat pairs (FPS, SCORE, BEST, …) aligned to the right.
 
 struct GameInfoTopStrip: View {
+    /// Optional — when supplied, drawn on the leading side. The
+    /// emulator screen passes the ROM title here; the built-in
+    /// Glowchase demo prefers a clean strip and leaves it nil.
+    let title: String?
+    let subtitle: String?
     let stats: [(String, String)]
     let onPause: (() -> Void)?
 
     init(
+        title: String? = nil,
+        subtitle: String? = nil,
         stats: [(String, String)] = [],
         onPause: (() -> Void)? = nil
     ) {
+        self.title = title
+        self.subtitle = subtitle
         self.stats = stats
         self.onPause = onPause
     }
 
     var body: some View {
         HStack(spacing: 18) {
-            // Pause button — moved to the left side
+            // Pause button — leading edge
             if let onPause {
                 PauseButton(onPause: onPause)
+            }
+
+            // Optional title + subtitle. Built-in demos leave both nil
+            // for a clean strip; the emulator screen fills them in.
+            if let title {
+                VStack(alignment: .leading, spacing: 1) {
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.orange)
+                            .tracking(0.8)
+                    }
+                    Text(title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                }
             }
 
             Spacer()
