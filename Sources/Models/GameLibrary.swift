@@ -45,6 +45,23 @@ enum ConsoleSystem: String, Codable, CaseIterable {
         case .psp:      return "rectangle.fill"
         }
     }
+
+    /// Short technical abbreviation used everywhere the console name is
+    /// shown to the user. Kept separate from `rawValue` because rawValue
+    /// is the Codable persistence key for `library.json` — renaming it
+    /// would invalidate every existing entry. Abbreviations also keep
+    /// trademarked product names (Super Nintendo, PlayStation, …) out of
+    /// the binary's visible strings, which is the safer App Store posture.
+    var displayName: String {
+        switch self {
+        case .snes:     return "SNES"
+        case .ps1:      return "PS1"
+        case .ps2:      return "PS2"
+        case .n64:      return "N64"
+        case .gamecube: return "GCN"
+        case .psp:      return "PSP"
+        }
+    }
 }
 
 // MARK: - ROM Entry

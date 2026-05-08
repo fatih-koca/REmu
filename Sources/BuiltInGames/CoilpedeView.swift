@@ -32,6 +32,8 @@ struct CoilpedeView: View {
                 // Top strip only — bottom ad strip removed for now.
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
+                        title: "Glowchase",
+                        subtitle: "BUILT-IN",
                         stats: [
                             ("SCORE", "\(game.score)"),
                             ("BEST",  "\(game.highScore)"),
@@ -450,7 +452,7 @@ struct CoilpedeView: View {
 
     private var overlayCard: some View {
         VStack(spacing: 14) {
-            Text(game.state == .gameOver ? "Game Over" : "Coilpede")
+            Text(game.state == .gameOver ? "Game Over" : "Glowchase")
                 .font(.largeTitle).bold()
                 .foregroundColor(.white)
 

@@ -133,7 +133,7 @@ struct ContentView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Coilpede")
+                        Text("Glowchase")
                             .font(.headline)
                             .foregroundColor(.white)
                         Text("Grow the chain, chase the glow")
@@ -246,7 +246,7 @@ struct ROMCard: View {
                     .lineLimit(2)
 
                 HStack {
-                    Text(rom.console.rawValue)
+                    Text(rom.console.displayName)
                         .font(.caption2)
                         .foregroundColor(.gray)
 
