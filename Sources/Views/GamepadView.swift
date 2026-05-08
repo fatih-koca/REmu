@@ -17,6 +17,29 @@ enum GamepadAction: Equatable {
     case start(Bool), select(Bool), menu(Bool)
 }
 
+// MARK: - Layout Preferences
+//
+// Each control column publishes its true visual footprint (column frame +
+// any subview that protrudes past the frame, like the analog stick when it's
+// offset toward screen center). EmulatorScreenView reads these and feeds
+// them to the Metal renderer so the game canvas never sneaks underneath the
+// thumbsticks. Required because percentage-based offsets blow up on iPad
+// otherwise.
+
+struct LeftColumnVisualWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+struct RightColumnVisualWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
 // MARK: - Left Control Column
 //
 // Vertical strip on the LEFT edge in landscape (the user's left thumb).
@@ -33,14 +56,18 @@ struct LeftControlColumn: View {
     let onAction: (GamepadAction) -> Void
 
     var body: some View {
-        // Net layout offsets after successive tweaks:
-        //   joystick   → 28% inward  (35% in, then 7% back toward edge)
-        //              + 7% downward (new)
-        //   bottom row → 18% up      (25% up, then 7% pulled back down)
-        //   D-pad      → 10% larger  (5% + 4% + 1%)
-        let centerPull = screenSize.width  * 0.28 / 2
-        let analogDrop = screenSize.height * 0.07
-        let bottomLift = screenSize.height * 0.18
+        // Modest inward shift so the analog stick clears the column rail but
+        // doesn't drift toward the screen center. PreferenceKey publishes the
+        // resulting visual extent so the renderer letterboxes around it.
+        let centerPull = min(screenSize.width * 0.08, 70)
+        // No vertical drop on the analog stick; D-pad lifts off the bottom
+        // padding only enough for thumb reach. Together this keeps a clean
+        // vertical gap between the two so they never visually overlap.
+        let bottomLift = min(screenSize.height * 0.12, 60)
+
+        let columnW: CGFloat = 106
+        let analogProtrusion = max(0, centerPull + 78/2 - columnW/2)
+        let visualWidth = columnW + analogProtrusion
 
         VStack(spacing: 14) {
             CompactShoulder(label: "L2", color: .purple) { onAction(.l2($0)) }
@@ -50,7 +77,7 @@ struct LeftControlColumn: View {
 
             CompactAnalogStick { x, y in onAction(.leftStick(x: x, y: y)) }
                 .frame(width: 78, height: 78)
-                .offset(x: centerPull, y: analogDrop)
+                .offset(x: centerPull, y: 0)
 
             Spacer(minLength: 8)
 
@@ -62,7 +89,8 @@ struct LeftControlColumn: View {
         .padding(.top, 10)
         .padding(.bottom, 56)
         .frame(maxHeight: .infinity)
-        .frame(width: 106)
+        .frame(width: columnW)
+        .preference(key: LeftColumnVisualWidthKey.self, value: visualWidth)
     }
 }
 
@@ -80,9 +108,12 @@ struct RightControlColumn: View {
     let onAction: (GamepadAction) -> Void
 
     var body: some View {
-        let centerPull = screenSize.width  * 0.28 / 2
-        let analogDrop = screenSize.height * 0.07
-        let bottomLift = screenSize.height * 0.18
+        let centerPull = min(screenSize.width * 0.08, 70)
+        let bottomLift = min(screenSize.height * 0.12, 60)
+
+        let columnW: CGFloat = 110
+        let analogProtrusion = max(0, centerPull + 78/2 - columnW/2)
+        let visualWidth = columnW + analogProtrusion
 
         VStack(spacing: 14) {
             CompactShoulder(label: "R2", color: .purple) { onAction(.r2($0)) }
@@ -92,7 +123,7 @@ struct RightControlColumn: View {
 
             CompactAnalogStick { x, y in onAction(.rightStick(x: x, y: y)) }
                 .frame(width: 78, height: 78)
-                .offset(x: -centerPull, y: analogDrop)
+                .offset(x: -centerPull, y: 0)
 
             Spacer(minLength: 8)
 
@@ -103,53 +134,107 @@ struct RightControlColumn: View {
         .padding(.top, 10)
         .padding(.bottom, 56)
         .frame(maxHeight: .infinity)
-        .frame(width: 110)
+        .frame(width: columnW)
+        .preference(key: RightColumnVisualWidthKey.self, value: visualWidth)
     }
 }
 
 // MARK: - Compact D-Pad
+//
+// Single 92×92 hit area driven by one DragGesture. The visible cross is
+// purely cosmetic; finger position relative to the center decides which
+// direction(s) to fire. A small deadzone around each axis lets the user
+// trigger pure horizontal/vertical presses without inadvertent diagonals,
+// while finger landings outside the deadzone fire BOTH neighbors so SNES
+// diagonals (run + jump) feel natural. Sliding the thumb between
+// directions correctly releases the old direction and presses the new
+// one — the previous per-button gestures dropped these transitions.
 
 private struct CompactDPad: View {
     let onAction: (GamepadAction) -> Void
+
+    private static let size: CGFloat = 92
+    private static let deadzone: CGFloat = 7
+
+    @State private var pressed = DirSet()
 
     var body: some View {
         ZStack {
             // Cross-shaped frame
             RoundedRectangle(cornerRadius: 7)
                 .fill(Color.white.opacity(0.10))
-                .frame(width: 92, height: 32)
+                .frame(width: Self.size, height: 32)
             RoundedRectangle(cornerRadius: 7)
                 .fill(Color.white.opacity(0.10))
-                .frame(width: 32, height: 92)
+                .frame(width: 32, height: Self.size)
             // Center dot
             Circle()
                 .fill(Color.white.opacity(0.15))
                 .frame(width: 20, height: 20)
 
-            // Hit areas with arrows
+            // Decorative chevrons — no longer hit targets, the gesture below
+            // owns the entire square.
             VStack(spacing: 0) {
-                arrowButton("chevron.up")    { onAction(.dpadUp($0)) }
+                chevron("chevron.up")
                 Spacer().frame(height: 32)
-                arrowButton("chevron.down")  { onAction(.dpadDown($0)) }
+                chevron("chevron.down")
             }
             HStack(spacing: 0) {
-                arrowButton("chevron.left")  { onAction(.dpadLeft($0)) }
+                chevron("chevron.left")
                 Spacer().frame(width: 32)
-                arrowButton("chevron.right") { onAction(.dpadRight($0)) }
+                chevron("chevron.right")
             }
         }
+        .frame(width: Self.size, height: Self.size)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in update(at: value.location) }
+                .onEnded   { _ in releaseAll() }
+        )
     }
 
-    private func arrowButton(
-        _ icon: String,
-        handler: @escaping (Bool) -> Void
-    ) -> some View {
-        HapticButton(haptic: .light) { handler($0) } label: {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.white.opacity(0.85))
-                .frame(width: 32, height: 32)
-        }
+    private func chevron(_ icon: String) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: 14, weight: .bold))
+            .foregroundColor(.white.opacity(0.85))
+            .frame(width: 32, height: 32)
+            .allowsHitTesting(false)
+    }
+
+    private func update(at point: CGPoint) {
+        let center = Self.size / 2
+        let dx = point.x - center
+        let dy = point.y - center
+        let dz = Self.deadzone
+
+        var next = DirSet()
+        next.up    = dy < -dz
+        next.down  = dy >  dz
+        next.left  = dx < -dz
+        next.right = dx >  dz
+
+        if next.up    != pressed.up    { onAction(.dpadUp(next.up));       haptic() }
+        if next.down  != pressed.down  { onAction(.dpadDown(next.down));   haptic() }
+        if next.left  != pressed.left  { onAction(.dpadLeft(next.left));   haptic() }
+        if next.right != pressed.right { onAction(.dpadRight(next.right)); haptic() }
+        pressed = next
+    }
+
+    private func releaseAll() {
+        if pressed.up    { onAction(.dpadUp(false))    }
+        if pressed.down  { onAction(.dpadDown(false))  }
+        if pressed.left  { onAction(.dpadLeft(false))  }
+        if pressed.right { onAction(.dpadRight(false)) }
+        pressed = DirSet()
+    }
+
+    private func haptic() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    private struct DirSet: Equatable {
+        var up = false, down = false, left = false, right = false
     }
 }
 
@@ -191,6 +276,12 @@ private struct CompactFaceCluster: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(color)
             }
+            // Visual stays at 40pt but the hit target grows into the dead
+            // space between buttons. Each button keeps its own gesture so
+            // multi-button combos (X+△ etc.) still register as
+            // simultaneous presses.
+            .frame(width: 56, height: 56)
+            .contentShape(Rectangle())
         }
         .offset(offset)
     }
@@ -268,6 +359,46 @@ private struct CompactShoulder: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(color.opacity(0.5), lineWidth: 1.2)
+                        )
+                )
+        }
+    }
+}
+
+// MARK: - Start / Select Bar
+//
+// Two pill buttons at the bottom-center of the in-game screen. Sized small
+// and washed-down so they don't compete with the face buttons / D-pad for
+// thumb attention, but live in the natural resting zone between the two
+// control columns where SNES intro-skip and pause flows are reachable in
+// one motion.
+
+struct StartSelectBar: View {
+    let onAction: (GamepadAction) -> Void
+
+    var body: some View {
+        HStack(spacing: 14) {
+            metaButton(label: "SELECT", tint: Color.orange) { onAction(.select($0)) }
+            metaButton(label: "START",  tint: Color.green)  { onAction(.start($0)) }
+        }
+    }
+
+    private func metaButton(
+        label: String,
+        tint: Color,
+        handler: @escaping (Bool) -> Void
+    ) -> some View {
+        HapticButton(haptic: .light) { handler($0) } label: {
+            Text(label)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .tracking(1.0)
+                .foregroundColor(Color.white.opacity(0.9))
+                .frame(width: 64, height: 26)
+                .background(
+                    Capsule()
+                        .fill(tint.opacity(0.45))
+                        .overlay(
+                            Capsule().stroke(Color.white.opacity(0.35), lineWidth: 1)
                         )
                 )
         }

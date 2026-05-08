@@ -155,11 +155,14 @@ final class CoilpedeGame: ObservableObject {
         }
     }
 
-    // Difficulty curve: faster as score rises
+    // Difficulty curve: faster as score rises.
+    // `base` carries an extra 20% slowdown on top of the earlier 30%, so
+    // the opening pace is comfortable while the cap (`min`) and ramp
+    // step remain — the snake still speeds up as the player scores.
     var currentTickInterval: TimeInterval {
-        let base: TimeInterval = 0.16
-        let min: TimeInterval  = 0.06
-        let step = Double(score / 30) * 0.01
+        let base: TimeInterval = 0.358
+        let min: TimeInterval  = 0.086
+        let step = Double(score / 30) * 0.014
         return max(min, base - step)
     }
 }

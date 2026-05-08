@@ -10,35 +10,80 @@ struct EmulatorScreenView: View {
     @State private var showMenu = false
     @State private var saveMessage: String?
     @State private var coreLoadFailed = false
+    // Seeded with the column frame widths from GamepadView; the columns
+    // overwrite these once their analog-stick-aware visual extents are
+    // measured. Kept in @State so device rotation re-flows the renderer.
+    @State private var leftColWidth: CGFloat = 106
+    @State private var rightColWidth: CGFloat = 110
 
     var body: some View {
+        ZStack(alignment: .bottom) {
+            // Game + controls handles its own safe-area logic via the
+            // GeometryReader inside `gameAndControls`. We must NOT put
+            // .ignoresSafeArea() on the outer ZStack — doing so makes the
+            // inner GeometryReader read zero-valued safeAreaInsets, which
+            // collapses the column horizontal padding and shoves all the
+            // buttons against the rounded-corner edge of the device.
+            gameAndControls
+
+            // Bar lives in a SwiftUI subtree completely separate from the
+            // MetalViewRepresentable's host view. The outer ZStack respects
+            // safe area so the bar naturally sits above the home indicator.
+            StartSelectBar(onAction: handleGamepadAction)
+                .padding(.bottom, 8)
+                .allowsHitTesting(!showMenu && !coreLoadFailed)
+        }
+        // Menu rendered at body level so it centers within the SAFE AREA
+        // (i.e., visually centered between top and home indicator). Inside
+        // gameAndControls's inner ZStack the .ignoresSafeArea() consumes
+        // the insets, which made every nested attempt at safe-aware
+        // centering read zero and pin the card to the physical pixel
+        // center — visually low because the home indicator chops the
+        // bottom 21pt off the perceived screen.
+        .overlay(menuOverlay)
+    }
+
+    @ViewBuilder
+    private var menuOverlay: some View {
+        if showMenu {
+            InGameMenuView(
+                rom: rom,
+                onExit: onExit,
+                onDismiss: { showMenu = false }
+            ) { msg in
+                showToast(msg)
+            }
+        }
+    }
+
+    private var gameAndControls: some View {
         GeometryReader { geo in
             let inset = geo.safeAreaInsets
-            // hPad sits ON TOP of the system safe area (which already
-            // covers the Dynamic Island). 18pt = compact corner clearance,
-            // controls stay close to the edge for natural thumb reach.
-            let hPad: CGFloat = 18
+            // hPad sits ON TOP of the system safe area. 4pt keeps L1/L2/R1/R2
+            // hugging the rounded-corner safe edge for thumb reach.
+            let hPad: CGFloat = 4
 
             ZStack {
                 Color.black
-                // Insets need to reach the renderer so it can keep the game
-                // off the rounded corners + home-indicator area. Bumped up
-                // by hPad so the game doesn't overlap the on-screen controls.
+                // Game is pulled flush to the physical top edge — pause/FPS
+                // chips float on top as translucent overlays. Bottom keeps a
+                // 3% breathing margin so the canvas doesn't hug the home
+                // indicator on every device size.
                 MetalViewRepresentable(
                     rom: rom,
                     safeAreaInsets: EdgeInsets(
-                        // Reserve the GameInfoTopStrip's 50pt height so the
-                        // game doesn't render behind it — SMW's HUD (MARIO x5,
-                        // TIME, coin counter) was previously hidden under the
-                        // title text. The +8 matches the bottom breathing
-                        // room so the framing reads as balanced even though
-                        // the home indicator is smaller than the strip.
-                        top:      max(inset.top,    4) + 50,
-                        leading:  inset.leading  + hPad + 110,  // ≈ left column width
-                        bottom:   max(inset.bottom, 4) + 8,
-                        trailing: inset.trailing + hPad + 114   // ≈ right column width
+                        top:      0,
+                        leading:  inset.leading  + hPad + leftColWidth,
+                        bottom:   0,
+                        trailing: inset.trailing + hPad + rightColWidth
                     )
                 )
+                // The `.ignoresSafeArea()` on the outer ZStack does not
+                // automatically propagate into a UIViewControllerRepresentable
+                // (SwiftUI re-applies the window safe area to it), which is
+                // what was pushing the canvas ~50pt below the physical top
+                // edge even when we asked for top=0. This forces it through.
+                .ignoresSafeArea()
 
                 // Top strip only — bottom ad strip removed for now,
                 // can be reintroduced when the AdMob SDK is wired in.
@@ -66,6 +111,8 @@ struct EmulatorScreenView: View {
                 .padding(.trailing, inset.trailing + hPad)
                 .padding(.top,      max(inset.top,    4) + 56)
                 .padding(.bottom,   max(inset.bottom, 4) + 40)
+                .onPreferenceChange(LeftColumnVisualWidthKey.self)  { leftColWidth  = $0 }
+                .onPreferenceChange(RightColumnVisualWidthKey.self) { rightColWidth = $0 }
 
                 // Toast
                 if let msg = saveMessage {
@@ -83,16 +130,9 @@ struct EmulatorScreenView: View {
                     }
                 }
 
-                // In-game menu modal
-                if showMenu {
-                    InGameMenuView(
-                        rom: rom,
-                        onExit: onExit,
-                        onDismiss: { showMenu = false }
-                    ) { msg in
-                        showToast(msg)
-                    }
-                }
+                // In-game menu is now rendered at body-level overlay so
+                // it centers within the SAFE AREA, not the physical pixel
+                // center which appears low due to the home indicator.
 
                 // Core load failure overlay
                 if coreLoadFailed {
@@ -236,6 +276,23 @@ final class MetalGameViewController: UIViewController {
         AudioEngine.shared.stop()
         GameControllerManager.shared.onAction = nil
         CoreBridgeWrapper.shared.stopCore()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // SwiftUI's UIViewControllerRepresentable refuses to honor parent
+        // .ignoresSafeArea() — it positions this VC's view INSIDE the
+        // window's safe area no matter what the SwiftUI hierarchy does.
+        // Force the MTKView to span the entire window in our parent's
+        // coordinate space so the renderer's drawableSize matches the
+        // physical screen and our top/bottom insets behave as advertised.
+        guard let window = view.window else { return }
+        view.clipsToBounds = false
+        let windowFrameInView = view.convert(window.bounds, from: nil)
+        if mtkView.frame != windowFrameInView {
+            mtkView.autoresizingMask = []
+            mtkView.frame = windowFrameInView
+        }
     }
 
     // MARK: Metal Setup
@@ -502,6 +559,10 @@ struct InGameMenuView: View {
     let onMessage: (String) -> Void
 
     var body: some View {
+        // Mounted as a body-level overlay on EmulatorScreenView, so the
+        // outer ZStack's safe-area-respecting frame already centers this
+        // card at the visual midpoint (above the home indicator). No
+        // manual offset needed.
         ZStack {
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
@@ -516,7 +577,10 @@ struct InGameMenuView: View {
             .background(
                 RoundedRectangle(cornerRadius: 18)
                     .fill(Color(white: 0.1))
-                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.15)))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.white.opacity(0.15))
+                    )
             )
         }
     }
