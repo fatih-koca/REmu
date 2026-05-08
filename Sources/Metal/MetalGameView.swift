@@ -76,7 +76,11 @@ struct EmulatorScreenView: View {
                         leading:  inset.leading  + hPad + leftColWidth,
                         bottom:   0,
                         trailing: inset.trailing + hPad + rightColWidth
-                    )
+                    ),
+                    // Freeze the core's clock while the in-game menu is up
+                    // (or while a core-load failure dialog is shown — no
+                    // point spinning a half-loaded core in the background).
+                    isPaused: showMenu || coreLoadFailed
                 )
                 // The `.ignoresSafeArea()` on the outer ZStack does not
                 // automatically propagate into a UIViewControllerRepresentable
@@ -217,6 +221,11 @@ struct EmulatorScreenView: View {
 struct MetalViewRepresentable: UIViewControllerRepresentable {
     let rom: ROMEntry
     let safeAreaInsets: EdgeInsets
+    /// True while the in-game menu (or any other overlay that should
+    /// freeze gameplay) is showing. Controlled by SwiftUI; the controller
+    /// stops the CADisplayLink while paused so retro_run is not called
+    /// and the core's clock does not advance behind the menu.
+    let isPaused: Bool
 
     func makeUIViewController(context: Context) -> MetalGameViewController {
         let vc = MetalGameViewController()
@@ -229,6 +238,7 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
         // Insets shift when the device rotates or the on-screen keyboard
         // appears; forward every update to the renderer.
         uiViewController.applySafeAreaInsets(safeAreaInsets)
+        uiViewController.setPaused(isPaused)
     }
 }
 
@@ -376,6 +386,16 @@ final class MetalGameViewController: UIViewController {
 
     @objc private func tick() {
         CoreBridgeWrapper.shared.runFrame()
+    }
+
+    /// Freeze (or resume) the core's clock. Pausing the CADisplayLink
+    /// stops `tick()`, which means `retro_run` is no longer called — game
+    /// state freezes, video stays on its last drawn frame, and the audio
+    /// ring buffer drains within ~100 ms (the AudioEngine's underrun fade
+    /// handles the silence boundary). Resuming flips it back without any
+    /// state restoration: the next tick simply runs the next frame.
+    func setPaused(_ paused: Bool) {
+        displayLink?.isPaused = paused
     }
 }
 
