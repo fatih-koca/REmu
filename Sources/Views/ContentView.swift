@@ -239,11 +239,32 @@ struct ROMCard: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                Text(rom.title)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .lineLimit(2)
+                // Reserve 2 lines of vertical space so a 1-line title and a
+                // 2-line title produce the same card height — otherwise the
+                // grid rows look ragged when long names are mixed with short
+                // ones. `iOS 16+`'s `.lineLimit(2, reservesSpace: true)` is
+                // the cleanest way; the iOS-15 fallback uses a fixed-height
+                // frame to lock the same vertical footprint.
+                Group {
+                    if #available(iOS 16.0, *) {
+                        Text(rom.title)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2, reservesSpace: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        Text(rom.title)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                            .frame(maxWidth: .infinity, minHeight: 32,
+                                   alignment: .topLeading)
+                    }
+                }
 
                 HStack {
                     Text(rom.console.displayName)
