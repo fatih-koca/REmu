@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import UIKit
 import os.lock
 
 /// Streams 16-bit stereo interleaved audio coming from a Libretro core into
@@ -36,7 +37,19 @@ final class AudioEngine {
     /// clicks that show up as "crackle" when the producer stalls.
     private var wasUnderrun = false
 
+    /// Set when iOS posts userDidTakeScreenshotNotification. The render
+    /// block reads this and applies a brief duck envelope to mask any
+    /// residual artifacts from the producer-side stall the screenshot
+    /// causes. Notification fires AFTER the capture, so this can't
+    /// prevent the very first click — but it cleans up the recovery
+    /// edge and any back-to-back screenshots.
+    private var screenshotDuckStart: CFAbsoluteTime = 0
+    private let screenshotDuckAttack: Float  = 0.040  // 40 ms ramp down
+    private let screenshotDuckHold: Float    = 0.500  // 500 ms muted hold
+    private let screenshotDuckRelease: Float = 0.120  // 120 ms ramp up
+
     private var interruptionObserver: NSObjectProtocol?
+    private var screenshotObserver: NSObjectProtocol?
 
     private init() {}
 
@@ -69,6 +82,7 @@ final class AudioEngine {
 
         configureAudioSession()
         registerInterruptionObserver()
+        registerScreenshotObserver()
 
         // Pull-based source: AVAudioEngine asks us for `frameCount` frames on
         // the audio render thread; we copy them out of the ring buffer.
@@ -114,6 +128,11 @@ final class AudioEngine {
             NotificationCenter.default.removeObserver(interruptionObserver)
             self.interruptionObserver = nil
         }
+        if let screenshotObserver {
+            NotificationCenter.default.removeObserver(screenshotObserver)
+            self.screenshotObserver = nil
+        }
+        screenshotDuckStart = 0
 
         // Release the audio session so other apps regain control immediately
         // (and so we don't keep "playing" silently in the background).
@@ -144,9 +163,10 @@ final class AudioEngine {
         let actualFrames = pulled.count / 2
 
         // Fade-in window if we're recovering from a previous underrun.
-        // ~5 ms at the engine's sample rate.
+        // ~15 ms at the engine's sample rate — long enough to fully
+        // mask the boundary click without being audible as a fade.
         let fadeInLen = wasUnderrun
-            ? min(actualFrames, Int(sampleRate * 0.005))
+            ? min(actualFrames, Int(sampleRate * 0.015))
             : 0
 
         for i in 0..<actualFrames {
@@ -164,7 +184,7 @@ final class AudioEngine {
         if actualFrames < n {
             // Underrun: ramp the last real sample to silence over a short
             // window, then hold silence for the rest of the requested frames.
-            let fadeOutLen = min(n - actualFrames, Int(sampleRate * 0.005))
+            let fadeOutLen = min(n - actualFrames, Int(sampleRate * 0.015))
             let lastL = actualFrames > 0 ? leftRaw[actualFrames - 1]  : 0
             let lastR = actualFrames > 0 ? rightRaw[actualFrames - 1] : 0
             for i in 0..<fadeOutLen {
@@ -180,6 +200,59 @@ final class AudioEngine {
         } else {
             wasUnderrun = false
         }
+
+        // Final post-process: apply the screenshot-duck envelope on top of
+        // whatever the render path produced. We compute the gain at the
+        // start and end of this render call's time window and lerp linearly
+        // across — accurate enough for a 5–20 ms call, much cheaper than
+        // sampling the envelope per frame.
+        applyScreenshotDuck(leftRaw: leftRaw, rightRaw: rightRaw, frameCount: n)
+    }
+
+    /// Multiplies the just-rendered output buffers by the screenshot-duck
+    /// envelope. No-op when no screenshot has fired recently.
+    private func applyScreenshotDuck(
+        leftRaw: UnsafeMutablePointer<Float>,
+        rightRaw: UnsafeMutablePointer<Float>,
+        frameCount n: Int
+    ) {
+        let totalDuration = screenshotDuckAttack + screenshotDuckHold + screenshotDuckRelease
+        let now = CFAbsoluteTimeGetCurrent()
+        let elapsedAtStart = Float(now - screenshotDuckStart)
+        guard elapsedAtStart < totalDuration else { return }
+
+        let frameSeconds = 1.0 / Float(sampleRate)
+        let elapsedAtEnd = elapsedAtStart + Float(n) * frameSeconds
+        let gainStart = duckGain(at: elapsedAtStart)
+        let gainEnd   = duckGain(at: elapsedAtEnd)
+
+        if gainStart >= 0.999 && gainEnd >= 0.999 { return }
+
+        for i in 0..<n {
+            let t = n > 1 ? Float(i) / Float(n - 1) : 0
+            let g = gainStart + (gainEnd - gainStart) * t
+            leftRaw[i]  *= g
+            rightRaw[i] *= g
+        }
+    }
+
+    /// Linear envelope: 1 → 0 over `attack`, hold at 0, 0 → 1 over
+    /// `release`. Returns 1.0 outside the active window.
+    private func duckGain(at elapsed: Float) -> Float {
+        let attack  = screenshotDuckAttack
+        let hold    = screenshotDuckHold
+        let release = screenshotDuckRelease
+        if elapsed < 0 { return 1.0 }
+        if elapsed < attack {
+            return 1.0 - (elapsed / attack)
+        }
+        if elapsed < attack + hold {
+            return 0.0
+        }
+        if elapsed < attack + hold + release {
+            return (elapsed - attack - hold) / release
+        }
+        return 1.0
     }
 
     // MARK: Core → Audio pipeline
@@ -222,6 +295,21 @@ final class AudioEngine {
     /// interruption notification. AVAudioEngine pauses on .began but does
     /// not auto-resume on .ended unless we call start() again. Without
     /// this handler the engine stays silent after the interruption clears.
+    /// iOS posts userDidTakeScreenshotNotification AFTER the capture is
+    /// complete — we can't pre-empt the producer-side stall this way, but
+    /// applying a brief duck once the notification arrives masks the tail
+    /// of any glitch and cleans up back-to-back screenshots taken in
+    /// quick succession.
+    private func registerScreenshotObserver() {
+        screenshotObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.userDidTakeScreenshotNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.screenshotDuckStart = CFAbsoluteTimeGetCurrent()
+        }
+    }
+
     private func registerInterruptionObserver() {
         interruptionObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.interruptionNotification,
