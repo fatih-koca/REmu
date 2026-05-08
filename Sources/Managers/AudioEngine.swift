@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import os.lock
 
 /// Streams 16-bit stereo interleaved audio coming from a Libretro core into
 /// AVAudioEngine. Designed around a pull-based AVAudioSourceNode (the right
@@ -9,6 +10,12 @@ import AVFoundation
 /// produced the click/jitter we hit earlier — and gives a clean, deterministic
 /// teardown: stopping the engine immediately silences the speaker instead of
 /// playing out a queue of already-scheduled buffers.
+///
+/// Thread-safety note: producer is the core's main thread, consumer is the
+/// real-time audio render thread. The ring buffer uses `os_unfair_lock`
+/// (not `NSLock`) so a momentary main-thread stall — e.g. iOS pausing us
+/// for ~1 s during a screenshot capture — doesn't trigger the priority
+/// inversion that produced an audible crackle.
 final class AudioEngine {
     static let shared = AudioEngine()
 
@@ -22,6 +29,14 @@ final class AudioEngine {
     private var format: AVAudioFormat!
     private var ringBuffer: RingBuffer!
     private var isRunning = false
+
+    /// Tracks whether the previous render call ran out of samples. Used to
+    /// fade audio in smoothly when the buffer recovers, mirroring the
+    /// fade-out we apply when underrun begins. Eliminates the boundary
+    /// clicks that show up as "crackle" when the producer stalls.
+    private var wasUnderrun = false
+
+    private var interruptionObserver: NSObjectProtocol?
 
     private init() {}
 
@@ -47,44 +62,19 @@ final class AudioEngine {
         self.format = fmt
 
         // ~2 s of stereo headroom (sampleRate × 2 channels × 2 seconds).
-        // Larger than strictly needed for steady-state, but iOS can stall the
-        // main thread for ~1 s during a screenshot capture — bigger buffer
-        // means the AVAudioSourceNode keeps pulling real samples through that
-        // window instead of falling through to silence.
+        // The render block won't actually run that far ahead; this just
+        // gives the producer room to dump a backlog after a stall without
+        // overwriting still-unread samples.
         ringBuffer = RingBuffer(capacity: Int(sampleRate * 4))
 
         configureAudioSession()
+        registerInterruptionObserver()
 
         // Pull-based source: AVAudioEngine asks us for `frameCount` frames on
-        // the audio render thread; we copy them out of the ring buffer. If
-        // we're underrun (the core hasn't produced enough yet) we fill the
-        // remainder with silence — a brief duck rather than the click-storm
-        // that scheduling-based playback produced.
+        // the audio render thread; we copy them out of the ring buffer.
         let source = AVAudioSourceNode(format: fmt) { [weak self] _, _, frameCount, abl -> OSStatus in
             guard let self else { return noErr }
-            let bufferList = UnsafeMutableAudioBufferListPointer(abl)
-            let n = Int(frameCount)
-
-            let leftRaw  = bufferList[0].mData?.assumingMemoryBound(to: Float.self)
-            let rightRaw = bufferList[1].mData?.assumingMemoryBound(to: Float.self)
-
-            // Pull stereo-interleaved int16s out of the ring buffer.
-            let pulled = self.ringBuffer.copyOut(maxSamples: n * 2)
-
-            let actualFrames = pulled.count / 2
-            if let leftRaw, let rightRaw {
-                for i in 0..<actualFrames {
-                    leftRaw[i]  = Float(pulled[i * 2])     / 32767.0
-                    rightRaw[i] = Float(pulled[i * 2 + 1]) / 32767.0
-                }
-                // Pad trailing frames with silence on underrun.
-                if actualFrames < n {
-                    for i in actualFrames..<n {
-                        leftRaw[i]  = 0
-                        rightRaw[i] = 0
-                    }
-                }
-            }
+            self.render(frameCount: Int(frameCount), abl: abl)
             return noErr
         }
 
@@ -118,11 +108,78 @@ final class AudioEngine {
         }
         sourceNode = nil
         ringBuffer?.reset()
+        wasUnderrun = false
+
+        if let interruptionObserver {
+            NotificationCenter.default.removeObserver(interruptionObserver)
+            self.interruptionObserver = nil
+        }
 
         // Release the audio session so other apps regain control immediately
         // (and so we don't keep "playing" silently in the background).
         try? AVAudioSession.sharedInstance()
             .setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    // MARK: - Render
+
+    /// Copies samples out of the ring buffer into the audio render block's
+    /// output buffers. Smooths the boundary on partial reads:
+    ///
+    ///   - On underrun (we got fewer samples than requested), the trailing
+    ///     padding ramps from the last real sample down to silence over a
+    ///     short window instead of jumping to 0 — that step is what the user
+    ///     hears as a click during a screenshot stall.
+    ///   - On recovery (we WERE underrun and now have samples again), the
+    ///     leading frames ramp from 0 up to the real signal so the buffer
+    ///     refill doesn't pop either.
+    private func render(frameCount n: Int, abl: UnsafeMutablePointer<AudioBufferList>) {
+        let bufferList = UnsafeMutableAudioBufferListPointer(abl)
+        guard let leftRaw  = bufferList[0].mData?.assumingMemoryBound(to: Float.self),
+              let rightRaw = bufferList[1].mData?.assumingMemoryBound(to: Float.self)
+        else { return }
+
+        // Pull stereo-interleaved int16s out of the ring buffer.
+        let pulled = ringBuffer.copyOut(maxSamples: n * 2)
+        let actualFrames = pulled.count / 2
+
+        // Fade-in window if we're recovering from a previous underrun.
+        // ~5 ms at the engine's sample rate.
+        let fadeInLen = wasUnderrun
+            ? min(actualFrames, Int(sampleRate * 0.005))
+            : 0
+
+        for i in 0..<actualFrames {
+            var l = Float(pulled[i * 2])     / 32767.0
+            var r = Float(pulled[i * 2 + 1]) / 32767.0
+            if i < fadeInLen {
+                let t = Float(i + 1) / Float(fadeInLen + 1)
+                l *= t
+                r *= t
+            }
+            leftRaw[i]  = l
+            rightRaw[i] = r
+        }
+
+        if actualFrames < n {
+            // Underrun: ramp the last real sample to silence over a short
+            // window, then hold silence for the rest of the requested frames.
+            let fadeOutLen = min(n - actualFrames, Int(sampleRate * 0.005))
+            let lastL = actualFrames > 0 ? leftRaw[actualFrames - 1]  : 0
+            let lastR = actualFrames > 0 ? rightRaw[actualFrames - 1] : 0
+            for i in 0..<fadeOutLen {
+                let t = Float(i + 1) / Float(fadeOutLen + 1)
+                leftRaw[actualFrames + i]  = lastL * (1 - t)
+                rightRaw[actualFrames + i] = lastR * (1 - t)
+            }
+            for i in (actualFrames + fadeOutLen)..<n {
+                leftRaw[i]  = 0
+                rightRaw[i] = 0
+            }
+            wasUnderrun = true
+        } else {
+            wasUnderrun = false
+        }
     }
 
     // MARK: Core → Audio pipeline
@@ -160,16 +217,68 @@ final class AudioEngine {
             print("[AudioEngine] session error: \(error)")
         }
     }
+
+    /// Phone calls, FaceTime, Siri, alarms: AVAudioSession sends an
+    /// interruption notification. AVAudioEngine pauses on .began but does
+    /// not auto-resume on .ended unless we call start() again. Without
+    /// this handler the engine stays silent after the interruption clears.
+    private func registerInterruptionObserver() {
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            self?.handleInterruption(note)
+        }
+    }
+
+    private func handleInterruption(_ note: Notification) {
+        guard
+            let info = note.userInfo,
+            let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeRaw)
+        else { return }
+
+        switch type {
+        case .began:
+            // Engine auto-pauses; consumer thread will see underruns and
+            // ride them out on silence. Nothing to do here.
+            break
+        case .ended:
+            guard
+                let optionsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt
+            else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsRaw)
+            if options.contains(.shouldResume), isRunning {
+                try? engine.start()
+                wasUnderrun = true   // ramp the recovery in instead of popping
+            }
+        @unknown default:
+            break
+        }
+    }
 }
 
-// MARK: - Ring buffer (single-producer / single-consumer, locked)
+// MARK: - Ring buffer (single-producer / single-consumer)
 
+/// Single-producer (Libretro main thread) / single-consumer (audio render
+/// thread) ring buffer. Uses `os_unfair_lock` rather than `NSLock` because:
+///
+///   - it's an order of magnitude faster on the audio thread, and
+///   - it does not subject the audio thread to the same priority-inversion
+///     stalls that `NSLock` does. When the main thread gets paused by iOS
+///     (e.g. during a screenshot capture) while holding `NSLock`, the audio
+///     render thread blocks on `lock()`, misses its deadline, and the
+///     speaker hears a crackle. `os_unfair_lock` minimizes that window.
+///
+/// True wait-free SPSC with atomics would be ideal, but `os_unfair_lock`
+/// closes the audible glitch in practice without pulling in swift-atomics.
 private final class RingBuffer {
     private var buffer: [Int16]
     private let capacity: Int
     private var readIndex = 0
     private var writeIndex = 0
-    private let lock = NSLock()
+    private var lock = os_unfair_lock_s()
 
     init(capacity: Int) {
         self.capacity = capacity
@@ -177,7 +286,8 @@ private final class RingBuffer {
     }
 
     func write(samples: UnsafePointer<Int16>, count: Int) {
-        lock.lock(); defer { lock.unlock() }
+        os_unfair_lock_lock(&lock)
+        defer { os_unfair_lock_unlock(&lock) }
         for i in 0..<count {
             buffer[writeIndex] = samples[i]
             writeIndex = (writeIndex + 1) % capacity
@@ -193,7 +303,8 @@ private final class RingBuffer {
     /// with silence). The lock here is brief — a memcpy at worst — and held
     /// on the audio thread for tens of microseconds in practice.
     func copyOut(maxSamples: Int) -> [Int16] {
-        lock.lock(); defer { lock.unlock() }
+        os_unfair_lock_lock(&lock)
+        defer { os_unfair_lock_unlock(&lock) }
         let available: Int = {
             if writeIndex >= readIndex { return writeIndex - readIndex }
             return capacity - readIndex + writeIndex
@@ -210,7 +321,8 @@ private final class RingBuffer {
     }
 
     func reset() {
-        lock.lock(); defer { lock.unlock() }
+        os_unfair_lock_lock(&lock)
+        defer { os_unfair_lock_unlock(&lock) }
         readIndex = 0
         writeIndex = 0
     }
