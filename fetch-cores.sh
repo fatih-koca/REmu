@@ -1,7 +1,9 @@
 #!/bin/bash
-# Libretro core .dylib dosyalarını indirir
-# NOT: libretro buildbot URL'leri zaman içinde değişebilir.
-# Çalışmazsa manuel indir: https://buildbot.libretro.com/nightly/apple/ios-arm64/latest/
+# Libretro core .dylib dosyalarını indirir.
+# Liste, REmu'nun şu anda software-rendering ile sorunsuz çalıştırabildiği
+# core'larla sınırlı. HW-render isteyen core'lar (mupen64plus_next, ppsspp,
+# dolphin, pcsx2) frontend'de OpenGL ES context gerektirir; o desteği
+# eklemeden buraya almak hata verir.
 
 set -e
 
@@ -12,11 +14,8 @@ cd Resources/Cores
 BASE="https://buildbot.libretro.com/nightly/apple/ios-arm64/latest"
 
 CORES=(
-    "mednafen_psx_libretro_ios.dylib.zip"
-    "mupen64plus_next_libretro_ios.dylib.zip"
-    "ppsspp_libretro_ios.dylib.zip"
-    "dolphin_libretro_ios.dylib.zip"
-    "pcsx2_libretro_ios.dylib.zip"
+    "snes9x_libretro_ios.dylib.zip"
+    "mgba_libretro_ios.dylib.zip"
 )
 
 for core in "${CORES[@]}"; do
@@ -26,7 +25,7 @@ for core in "${CORES[@]}"; do
         rm "$core"
         echo "   ✅ $core"
     else
-        echo "   ⚠️  indirilemedi — manuel indirmen lazım"
+        echo "   ⚠️  indirilemedi — manuel indir: $BASE/$core"
     fi
 done
 

@@ -203,9 +203,9 @@ private extension ConsoleSystem {
     var libretroThumbnailFolder: String? {
         switch self {
         case .snes:     return "Nintendo_-_Super_Nintendo_Entertainment_System"
+        case .gba:      return "Nintendo_-_Game_Boy_Advance"
         case .ps1:      return "Sony_-_PlayStation"
         case .ps2:      return "Sony_-_PlayStation_2"
-        case .n64:      return "Nintendo_-_Nintendo_64"
         case .gamecube: return "Nintendo_-_GameCube"
         case .psp:      return "Sony_-_PlayStation_Portable"
         }
