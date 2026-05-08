@@ -79,6 +79,14 @@ targets:
       - sdk: AVFoundation.framework
       - sdk: UIKit.framework
       - sdk: SwiftUI.framework
+      # Libretro cores routinely depend on OpenGLES (3D rendering) and
+      # AudioToolbox (audio queues). They aren't used by REmu's own Swift
+      # code, but a core's dlopen will fail at runtime if these symbols
+      # aren't already resident in the process. snes9x doesn't need them,
+      # but mupen64plus_next, ppsspp, dolphin, pcsx2, and almost every
+      # 3D-capable libretro core does.
+      - sdk: OpenGLES.framework
+      - sdk: AudioToolbox.framework
     postBuildScripts:
       - name: "Embed and Sign Libretro Cores"
         runOnlyWhenInstalling: false
