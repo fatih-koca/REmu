@@ -390,7 +390,7 @@ struct CoilpedeView: View {
                     .foregroundColor(.white)
 
                 VStack(spacing: 10) {
-                    pauseAction("Resume", icon: "play.fill", tint: .orange) {
+                    pauseAction("Resume", icon: "play.fill", tint: .green) {
                         isPaused = false
                         lastTick = Date()
                     }
