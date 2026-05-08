@@ -96,10 +96,10 @@ targets:
         # Add a matching pair for each new core dylib you drop into Resources/Cores.
         inputFiles:
           - $(SRCROOT)/Resources/Cores/snes9x_libretro_ios.dylib
-          - $(SRCROOT)/Resources/Cores/mupen64plus_next_libretro_ios.dylib
+          - $(SRCROOT)/Resources/Cores/mgba_libretro_ios.dylib
         outputFiles:
           - $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/snes9x_libretro_ios.dylib
-          - $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/mupen64plus_next_libretro_ios.dylib
+          - $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/mgba_libretro_ios.dylib
         script: |
           set -e
           SRC_DIR="${SRCROOT}/Resources/Cores"

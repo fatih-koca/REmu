@@ -1,6 +1,10 @@
 # REmu
 
-iOS için çok sistemli retro konsol emülatörü. PS1, PS2, N64, GameCube, PSP destekler.
+iOS için retro konsol kütüphanesi + emülatör. Şu anda **SNES** ve
+**GBA** core'ları software rendering ile çalışıyor; PS1 / PS2 /
+GameCube / PSP / N64 için core slotları kodda hazır ama bu cihazlar
+HW-render istiyor ve REmu'nun render pipeline'ı henüz OpenGL ES
+context açmıyor — o desteği ekleyince geri açılacaklar.
 
 ## Başlamak İçin
 

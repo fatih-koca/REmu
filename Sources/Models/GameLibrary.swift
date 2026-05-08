@@ -5,18 +5,22 @@ import UniformTypeIdentifiers
 
 enum ConsoleSystem: String, Codable, CaseIterable {
     case snes      = "Super Nintendo"
+    case gba       = "Game Boy Advance"
     case ps1       = "PlayStation"
     case ps2       = "PlayStation 2"
-    case n64       = "Nintendo 64"
     case gamecube  = "GameCube"
     case psp       = "PSP"
+    // n64 was removed when we discovered mupen64plus_next requires
+    // a full OpenGL HW-render context that REmu's software-only
+    // pipeline doesn't provide. Re-add it (and a GL bridge) when
+    // we're ready to commit to that work.
 
     var fileExtensions: [String] {
         switch self {
         case .snes:     return ["smc", "sfc", "fig", "swc"]
+        case .gba:      return ["gba"]
         case .ps1:      return ["bin", "cue", "iso", "img"]
         case .ps2:      return ["iso", "bin"]
-        case .n64:      return ["z64", "n64", "v64"]
         case .gamecube: return ["iso", "gcm", "gcz"]
         case .psp:      return ["iso", "cso", "pbp"]
         }
@@ -27,9 +31,9 @@ enum ConsoleSystem: String, Codable, CaseIterable {
     var coreIdentifier: String {
         switch self {
         case .snes:     return "snes9x"
+        case .gba:      return "mgba"
         case .ps1:      return "mednafen_psx"
         case .ps2:      return "pcsx2"
-        case .n64:      return "mupen64plus_next"
         case .gamecube: return "dolphin"
         case .psp:      return "ppsspp"
         }
@@ -38,9 +42,9 @@ enum ConsoleSystem: String, Codable, CaseIterable {
     var systemIcon: String {
         switch self {
         case .snes:     return "gamecontroller"
+        case .gba:      return "gamecontroller.fill"
         case .ps1:      return "gamecontroller.fill"
         case .ps2:      return "gamecontroller"
-        case .n64:      return "cube.fill"
         case .gamecube: return "cube"
         case .psp:      return "rectangle.fill"
         }
@@ -55,9 +59,9 @@ enum ConsoleSystem: String, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .snes:     return "SNES"
+        case .gba:      return "GBA"
         case .ps1:      return "PS1"
         case .ps2:      return "PS2"
-        case .n64:      return "N64"
         case .gamecube: return "GCN"
         case .psp:      return "PSP"
         }
@@ -292,10 +296,36 @@ final class ROMLibrary: ObservableObject {
     }
 
     private func load() {
-        guard
-            let data = try? Data(contentsOf: persistenceURL),
-            let decoded = try? JSONDecoder().decode([ROMEntry].self, from: data)
-        else { return }
+        guard let data = try? Data(contentsOf: persistenceURL) else { return }
+
+        // Decode entries one at a time and skip any that fail rather than
+        // throwing the entire array out. Why: when a previously-supported
+        // ConsoleSystem case is removed (we did this when N64 was dropped
+        // because mupen64plus_next wants a HW-render context we don't yet
+        // provide), the saved rawValue can no longer round-trip. A vanilla
+        // [ROMEntry] decode would propagate that failure and the user
+        // would see a wiped library on the very next launch — even for
+        // unrelated SNES / GBA entries that decode just fine.
+        guard let raw = try? JSONSerialization.jsonObject(with: data)
+              as? [[String: Any]] else { return }
+
+        let decoder = JSONDecoder()
+        var decoded: [ROMEntry] = []
+        var skipped = 0
+        for dict in raw {
+            guard
+                let itemData = try? JSONSerialization.data(withJSONObject: dict),
+                let entry = try? decoder.decode(ROMEntry.self, from: itemData)
+            else {
+                skipped += 1
+                continue
+            }
+            decoded.append(entry)
+        }
+        if skipped > 0 {
+            NSLog("REmu library: skipped %d entry/entries with unsupported console types",
+                  skipped)
+        }
 
         // iOS assigns a new Application Container UUID on each reinstall, so
         // the absolute URL we persisted last session is stale even though the
@@ -320,9 +350,11 @@ final class ROMLibrary: ObservableObject {
         roms = migrated
 
         // Persist the migrated paths so the next launch starts clean and we
-        // don't re-run this rewrite on every load.
-        if migrated.count != decoded.count
-            || zip(migrated, decoded).contains(where: { $0.0.filePath != $0.1.filePath }) {
+        // don't re-run this rewrite on every load. Also captures the skipped
+        // entries so they don't get re-attempted every launch.
+        let pathsChanged = migrated.count != decoded.count
+            || zip(migrated, decoded).contains(where: { $0.0.filePath != $0.1.filePath })
+        if skipped > 0 || pathsChanged {
             save()
         }
     }
