@@ -621,8 +621,10 @@ struct InGameMenuView: View {
         VStack(spacing: 0) {
             // First action: a clearly labelled "Resume" so users don't have to
             // discover that tapping outside the card also dismisses it. The
-            // background tap still works for muscle memory.
-            menuButton("Resume", icon: "play.fill", tint: .orange) {
+            // background tap still works for muscle memory. Tinted green to
+            // read as a "go / play" signal — pairs naturally with the red
+            // "Exit to Library" at the bottom.
+            menuButton("Resume", icon: "play.fill", tint: .green) {
                 onDismiss()
             }
             Divider().background(Color.white.opacity(0.1))
