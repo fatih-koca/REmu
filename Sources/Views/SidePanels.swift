@@ -7,13 +7,16 @@ import SwiftUI
 // number of stat pairs (FPS, SCORE, BEST, …) aligned to the right.
 
 struct GameInfoTopStrip: View {
-    let title: String
+    /// Optional — when supplied, drawn on the leading side. The
+    /// emulator screen passes the ROM title here; the built-in
+    /// Glowchase demo prefers a clean strip and leaves it nil.
+    let title: String?
     let subtitle: String?
     let stats: [(String, String)]
     let onPause: (() -> Void)?
 
     init(
-        title: String,
+        title: String? = nil,
         subtitle: String? = nil,
         stats: [(String, String)] = [],
         onPause: (() -> Void)? = nil
@@ -26,21 +29,31 @@ struct GameInfoTopStrip: View {
 
     var body: some View {
         HStack(spacing: 18) {
-            VStack(alignment: .leading, spacing: 1) {
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.orange)
-                        .tracking(0.8)
+            // Pause button — leading edge
+            if let onPause {
+                PauseButton(onPause: onPause)
+            }
+
+            // Optional title + subtitle. Built-in demos leave both nil
+            // for a clean strip; the emulator screen fills them in.
+            if let title {
+                VStack(alignment: .leading, spacing: 1) {
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.orange)
+                            .tracking(0.8)
+                    }
+                    Text(title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
                 }
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
             }
 
             Spacer()
 
+            // FPS (and any other stat) stays on the right
             ForEach(stats.indices, id: \.self) { i in
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(stats[i].0)
@@ -53,19 +66,17 @@ struct GameInfoTopStrip: View {
                         .monospacedDigit()
                 }
             }
-
-            if let onPause {
-                PauseButton(onPause: onPause)
-            }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 8)
         .frame(height: 50)
         .frame(maxWidth: .infinity)
         .background(
-            // Solid at top, fades into the game underneath
+            // Light wash so pause/FPS chips remain readable while the game
+            // pixels stay visible underneath. Faded to nothing at the bottom
+            // edge so the transition into the canvas is invisible.
             LinearGradient(
                 colors: [
-                    Color.black.opacity(0.78),
+                    Color.black.opacity(0.32),
                     Color.black.opacity(0.0),
                 ],
                 startPoint: .top, endPoint: .bottom
