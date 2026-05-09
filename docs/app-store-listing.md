@@ -17,7 +17,7 @@ file in sync with the live listing whenever metadata changes.
 ## App Name (≤ 30 chars)
 
 ```
-REmu — Retro Library
+REmu — Retro Emulator
 ```
 
 ## Subtitle (≤ 30 chars)
