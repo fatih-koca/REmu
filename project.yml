@@ -27,9 +27,11 @@ targets:
       - path: Sources
       - path: Resources
         excludes:
-          # Cores are embedded into Frameworks/ via the post-build script
-          # below, NOT copied as plain resources — that path lets us code-sign
-          # them with the app's identity so iOS will dlopen them at runtime.
+          # The raw .dylib cores here are the SOURCE that make-core-frameworks.sh
+          # wraps into CoreFrameworks/*.framework. They must NOT be copied into
+          # the app as loose files — Apple rejects standalone .dylib files
+          # (error 90171). They reach the app only as embedded frameworks (see
+          # the framework dependencies below), so exclude the raw folder.
           - "Cores/**"
     resources:
       - path: Resources
@@ -40,7 +42,7 @@ targets:
       properties:
         CFBundleDisplayName: REmu Retro
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "3"
+        CFBundleVersion: "5"
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft
@@ -84,6 +86,13 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Resources/REmu.entitlements
         DEVELOPMENT_TEAM: "H733JDPXFY"  # Fatih Koca — Apple Developer Program
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+        # Keep this NO. REmu targets iOS 15, where the Swift runtime ships
+        # with the OS, so the app must NOT embed its own copy. The libretro
+        # cores ship as properly-wrapped .framework bundles embedded through
+        # Xcode's standard pipeline, so no Swift back-deployment and no
+        # SwiftSupport folder are required (the old 90426/90429 errors came
+        # from raw .dylib files copied into the bundle after that pipeline ran).
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "NO"
     dependencies:
       - sdk: Metal.framework
       - sdk: MetalKit.framework
@@ -99,52 +108,18 @@ targets:
       # 3D-capable libretro core does.
       - sdk: OpenGLES.framework
       - sdk: AudioToolbox.framework
-    postBuildScripts:
-      - name: "Embed and Sign Libretro Cores"
-        runOnlyWhenInstalling: false
-        shell: /bin/bash
-        # Declaring explicit inputs/outputs lets Xcode skip this script when
-        # nothing changed — silences the "will run during every build" warning.
-        # Add a matching pair for each new core dylib you drop into Resources/Cores.
-        inputFiles:
-          - $(SRCROOT)/Resources/Cores/snes9x_libretro_ios.dylib
-          - $(SRCROOT)/Resources/Cores/mgba_libretro_ios.dylib
-        outputFiles:
-          - $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/snes9x_libretro_ios.dylib
-          - $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/mgba_libretro_ios.dylib
-        script: |
-          set -e
-          SRC_DIR="${SRCROOT}/Resources/Cores"
-          DEST_DIR="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
-
-          if [ ! -d "$SRC_DIR" ]; then
-            echo "warning: ${SRC_DIR} does not exist — no cores to embed"
-            exit 0
-          fi
-
-          mkdir -p "$DEST_DIR"
-          shopt -s nullglob
-          dylibs=("$SRC_DIR"/*.dylib)
-
-          if [ ${#dylibs[@]} -eq 0 ]; then
-            echo "warning: no .dylib files in ${SRC_DIR}"
-            exit 0
-          fi
-
-          for dylib in "${dylibs[@]}"; do
-            name=$(basename "$dylib")
-            echo "Embedding libretro core: $name"
-            cp -f "$dylib" "$DEST_DIR/$name"
-
-            if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && \
-               [ "${EXPANDED_CODE_SIGN_IDENTITY}" != "-" ]; then
-              codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY}" \
-                ${OTHER_CODE_SIGN_FLAGS:-} \
-                --timestamp=none \
-                "$DEST_DIR/$name"
-            else
-              # Simulator / no-team builds — ad-hoc signature is enough to
-              # let dlopen succeed on the device's developer-disk image.
-              codesign --force --sign - "$DEST_DIR/$name"
-            fi
-          done
+      # Libretro cores, wrapped as .framework bundles by ./make-core-frameworks.sh.
+      # Apple's App Store validation forbids standalone .dylib files anywhere in
+      # the bundle (error 90171), so each core ships inside a .framework. embed +
+      # codeSign route them through Xcode's normal "Embed Frameworks" phase, which
+      # places and signs them in REmu.app/Frameworks at the correct build stage
+      # (before swift-stdlib-tool runs — this is what fixed the old 90426/90429).
+      # At runtime CoreBridge.findCoreDylib() dlopen()s the framework binary by
+      # absolute path. Regenerate after changing cores:
+      #   ./fetch-cores.sh && ./make-core-frameworks.sh && xcodegen generate
+      - framework: CoreFrameworks/snes9x_libretro_ios.framework
+        embed: true
+        codeSign: true
+      - framework: CoreFrameworks/mgba_libretro_ios.framework
+        embed: true
+        codeSign: true

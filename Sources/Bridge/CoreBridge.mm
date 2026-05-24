@@ -125,13 +125,27 @@ static void cleanup_core_state() {
     g_save_dir   = nil;
 }
 
-/// Resolve a libretro core .dylib bundled with the app. Tries (in order):
-///   1. Bundle/Cores/<name>.dylib       ← preserved-folder structure
-///   2. Bundle/<name>.dylib             ← flattened resource
-///   3. Bundle/Frameworks/<name>.dylib  ← embedded-frameworks layout
+/// Resolve a libretro core bundled with the app. Tries (in order):
+///   1. Bundle/Frameworks/<name>.framework/<name>  ← App-Store-legal wrapper
+///   2. Bundle/Cores/<name>.dylib                   ← preserved-folder (dev)
+///   3. Bundle/<name>.dylib                         ← flattened resource (dev)
+///   4. Bundle/Frameworks/<name>.dylib              ← loose dylib (dev)
+///
+/// App Store review forbids standalone .dylib files anywhere in the bundle
+/// (error 90171), so release builds ship each core wrapped in a .framework
+/// inside Frameworks/. The framework directory and the Mach-O inside it are
+/// both named after the dylib minus its extension, e.g.
+/// snes9x_libretro_ios.framework/snes9x_libretro_ios. dlopen()'ing that binary
+/// by absolute path behaves exactly like dlopen()'ing the loose dylib did.
+/// The loose-dylib paths are kept as fallbacks for local/simulator builds.
 static NSString* findCoreDylib(NSString* coreFileName) {
     NSBundle* bundle = NSBundle.mainBundle;
+    NSString* base = [coreFileName stringByDeletingPathExtension];
+    NSString* frameworkBinary =
+        [[base stringByAppendingPathExtension:@"framework"]
+            stringByAppendingPathComponent:base];
     NSArray<NSString*>* candidates = @[
+        [bundle.privateFrameworksPath stringByAppendingPathComponent:frameworkBinary],
         [bundle.resourcePath stringByAppendingPathComponent:
             [@"Cores" stringByAppendingPathComponent:coreFileName]],
         [bundle.resourcePath stringByAppendingPathComponent:coreFileName],

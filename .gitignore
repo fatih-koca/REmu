@@ -15,6 +15,13 @@ Package.resolved
 # Libretro binary'leri (lisans nedeniyle kendin indireceksin)
 Resources/Cores/*.dylib
 
+# make-core-frameworks.sh ile dylib'lerden üretilen .framework sarmalayıcıları
+# (kaynak dylib'ler zaten ignore'lu; bunlar da üretilen artefakt)
+CoreFrameworks/
+
+# App Store export config (lokal; istersen commit'leyebilirsin)
+ExportOptions.plist
+
 # ROM/BIOS (asla commit'lenmez)
 *.iso
 *.bin
