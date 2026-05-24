@@ -42,7 +42,7 @@ targets:
       properties:
         CFBundleDisplayName: REmu Retro
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "5"
+        CFBundleVersion: "6"
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft
