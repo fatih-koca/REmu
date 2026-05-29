@@ -166,12 +166,12 @@ struct EmulatorScreenView: View {
                     .font(.system(size: 38))
                     .foregroundColor(.orange)
 
-                Text("Emülatör çekirdeği yüklenemedi")
+                Text("Couldn't start this game")
                     .font(.headline).bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("\(rom.console.displayName) için Libretro çekirdeği (\(rom.console.coreIdentifier)) henüz uygulamaya gömülü değil.\n\nROM kütüphanen sorunsuz, ancak gerçek emülasyon için core .dylib dosyalarını uygulamaya eklemen gerekiyor.\n\nŞu an Glowchase demosu sorunsuz oynanır.")
+                Text("\(rom.console.displayName) couldn't be started. This system may be unsupported on this device, or a required BIOS file is missing — PlayStation games need a BIOS file you provide yourself. The built-in Glowchase demo always works.")
                     .font(.footnote)
                     .foregroundColor(.white.opacity(0.75))
                     .multilineTextAlignment(.center)
@@ -179,7 +179,7 @@ struct EmulatorScreenView: View {
                     .padding(.horizontal, 8)
 
                 Button(action: onExit) {
-                    Text("Kütüphaneye dön")
+                    Text("Back to Library")
                         .font(.headline)
                         .foregroundColor(.black)
                         .padding(.horizontal, 24)
@@ -643,7 +643,7 @@ struct InGameMenuView: View {
     }
 
     private func menuButton(
-        _ title: String,
+        _ title: LocalizedStringKey,
         icon: String,
         tint: Color = .white,
         action: @escaping () -> Void
@@ -665,14 +665,14 @@ struct InGameMenuView: View {
 
     private func performSave() {
         guard let data = CoreBridgeWrapper.shared.serializeState() else {
-            onMessage("Save failed")
+            onMessage(String(localized: "Save failed"))
             return
         }
         do {
             _ = try SaveStateManager.shared.saveState(romID: rom.id, stateData: data)
-            onMessage("State saved")
+            onMessage(String(localized: "State saved"))
         } catch {
-            onMessage("Save error: \(error.localizedDescription)")
+            onMessage("\(String(localized: "Save error")): \(error.localizedDescription)")
         }
         onDismiss()
     }
@@ -680,13 +680,13 @@ struct InGameMenuView: View {
     private func performLoad() {
         do {
             guard let data = try SaveStateManager.shared.loadLatestState(for: rom.id) else {
-                onMessage("No save found")
+                onMessage(String(localized: "No save found"))
                 return
             }
             CoreBridgeWrapper.shared.deserializeState(data)
-            onMessage("State loaded")
+            onMessage(String(localized: "State loaded"))
         } catch {
-            onMessage("Load error")
+            onMessage(String(localized: "Load error"))
         }
         onDismiss()
     }

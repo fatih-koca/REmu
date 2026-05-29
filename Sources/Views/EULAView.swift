@@ -60,12 +60,12 @@ struct EULAView: View {
                 .foregroundColor(.orange)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(displayMode == .firstLaunch ? "Welcome to REmu" : "Terms of Use")
+                Text(LocalizedStringKey(displayMode == .firstLaunch ? "Welcome to REmu" : "Terms of Use"))
                     .font(.title3).bold()
                     .foregroundColor(.white)
-                Text(displayMode == .firstLaunch
+                Text(LocalizedStringKey(displayMode == .firstLaunch
                      ? "Please review and accept the terms before continuing."
-                     : "Below are the terms you accepted when first launching REmu.")
+                     : "Below are the terms you accepted when first launching REmu."))
                     .font(.caption)
                     .foregroundColor(.gray)
             }
@@ -118,7 +118,7 @@ struct EULAView: View {
         }
     }
 
-    private func section(icon: String, title: String, body: String) -> some View {
+    private func section(icon: String, title: LocalizedStringKey, body: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .font(.body)

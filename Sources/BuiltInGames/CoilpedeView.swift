@@ -33,10 +33,10 @@ struct CoilpedeView: View {
                 VStack(spacing: 0) {
                     GameInfoTopStrip(
                         title: "Glowchase",
-                        subtitle: "BUILT-IN",
+                        subtitle: String(localized: "BUILT-IN"),
                         stats: [
-                            ("SCORE", "\(game.score)"),
-                            ("BEST",  "\(game.highScore)"),
+                            (String(localized: "SCORE"), "\(game.score)"),
+                            (String(localized: "BEST"),  "\(game.highScore)"),
                         ],
                         onPause: {
                             softHaptic.impactOccurred()
@@ -418,7 +418,7 @@ struct CoilpedeView: View {
     }
 
     private func pauseAction(
-        _ title: String,
+        _ title: LocalizedStringKey,
         icon: String,
         tint: Color,
         action: @escaping () -> Void
@@ -452,7 +452,7 @@ struct CoilpedeView: View {
 
     private var overlayCard: some View {
         VStack(spacing: 14) {
-            Text(game.state == .gameOver ? "Game Over" : "Glowchase")
+            Text(LocalizedStringKey(game.state == .gameOver ? "Game Over" : "Glowchase"))
                 .font(.largeTitle).bold()
                 .foregroundColor(.white)
 
@@ -470,7 +470,7 @@ struct CoilpedeView: View {
                 haptic.impactOccurred()
                 game.start()
             } label: {
-                Text(game.state == .gameOver ? "Play Again" : "Start")
+                Text(LocalizedStringKey(game.state == .gameOver ? "Play Again" : "Start"))
                     .font(.headline)
                     .foregroundColor(.black)
                     .padding(.horizontal, 28).padding(.vertical, 12)

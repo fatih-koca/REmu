@@ -3,7 +3,7 @@ import SwiftUI
 struct TutorialView: View {
     @Environment(\.dismiss) private var dismiss
 
-    private let steps: [(icon: String, title: String, detail: String)] = [
+    private let steps: [(icon: String, title: LocalizedStringKey, detail: LocalizedStringKey)] = [
         (
             "doc.badge.plus",
             "Obtain ROMs Legally",
@@ -17,7 +17,7 @@ struct TutorialView: View {
         (
             "folder.badge.plus",
             "Import Your ROM",
-            "Tap the + button on the Library screen. Select your ROM file from the Files app. Supported formats: .iso, .bin/.cue (PS1), .z64 (N64), .iso/.gcm (GameCube), .iso/.cso (PSP)."
+            "Tap the + button on the Library screen. Select your ROM file from the Files app. Supported formats: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (Game Boy family), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1)."
         ),
         (
             "folder.fill",
@@ -93,8 +93,8 @@ struct TutorialView: View {
 private struct StepRow: View {
     let number: Int
     let icon: String
-    let title: String
-    let detail: String
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {

@@ -135,7 +135,7 @@ struct SettingsView: View {
 
     // MARK: Row helpers
 
-    private func sectionHeader(icon: String, label: String, tint: Color) -> some View {
+    private func sectionHeader(icon: String, label: LocalizedStringKey, tint: Color) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.caption)
@@ -150,8 +150,8 @@ struct SettingsView: View {
 
     private func settingRow(
         icon: String,
-        title: String,
-        subtitle: String,
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -319,7 +319,7 @@ private struct PrivacyPolicyView: View {
         )
     }
 
-    private func section(title: String, body: String) -> some View {
+    private func section(title: LocalizedStringKey, body: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.headline)

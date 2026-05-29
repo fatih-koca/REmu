@@ -1,0 +1,111 @@
+/* REmu — Türkçe yerelleştirme.
+   Anahtarlar SwiftUI görünümlerindeki İngilizce metinlerdir; değerler Türkçe karşılıklarıdır. */
+
+/* ContentView — kütüphane */
+"Built-in Demo" = "Dahili Demo";
+"Grow the chain, chase the glow" = "Zinciri büyüt, ışığı kovala";
+"No ROM needed · 100% original" = "ROM gerekmez · %100 özgün";
+"Your Library" = "Kütüphanen";
+"No ROMs imported" = "Henüz ROM eklenmedi";
+"Tap + to import your ROM files" = "ROM dosyalarını eklemek için + simgesine dokun";
+"Remove" = "Kaldır";
+
+/* SettingsView */
+"Settings" = "Ayarlar";
+"Done" = "Bitti";
+"LIBRARY" = "KÜTÜPHANE";
+"LEGAL" = "YASAL";
+"ABOUT" = "HAKKINDA";
+"Auto-download cover art" = "Kapak resmini otomatik indir";
+"Fetches public box art from GitHub when a ROM has no embedded cover. Off by default." = "Bir ROM'da gömülü kapak yoksa GitHub'dan herkese açık kutu resmini getirir. Varsayılan olarak kapalıdır.";
+"Version" = "Sürüm";
+"Review the agreement you accepted" = "Kabul ettiğin sözleşmeyi incele";
+"What data REmu does and doesn't collect" = "REmu'nun hangi verileri toplayıp toplamadığı";
+"Last updated: April 26, 2026" = "Son güncelleme: 26 Nisan 2026";
+"View Online" = "Çevrimiçi Görüntüle";
+"REmu is built to respect your privacy. This document describes what data the app handles and what it does not." = "REmu, gizliliğine saygı gösterecek şekilde tasarlandı. Bu belge, uygulamanın hangi verileri işleyip işlemediğini açıklar.";
+"No Personal Data Collected" = "Kişisel Veri Toplanmaz";
+"REmu does not collect, store, or transmit any personally identifiable information. We do not require an account, and we do not log your activity." = "REmu hiçbir kişisel olarak tanımlanabilir bilgiyi toplamaz, saklamaz veya iletmez. Hesap açmanı istemez ve etkinliğini kaydetmez.";
+"Local-Only Storage" = "Yalnızca Yerel Depolama";
+"All ROM files, save states, and screenshots remain on your device, inside the app's protected sandbox. They are never uploaded to any server, shared with us, or made available to third parties." = "Tüm ROM dosyaları, kayıt durumları ve ekran görüntüleri cihazında, uygulamanın korumalı alanında kalır. Hiçbir sunucuya yüklenmez, bizimle paylaşılmaz veya üçüncü taraflara sunulmaz.";
+"No Analytics or Tracking" = "Analitik veya Takip Yok";
+"This version of REmu does not include any analytics SDK, tracking pixel, or third-party telemetry. Crash reports, if shared, are handled by Apple's standard system tooling and require your explicit opt-in via iOS Settings." = "REmu'nun bu sürümü herhangi bir analitik SDK'sı, takip pikseli veya üçüncü taraf telemetri içermez. Paylaşılması durumunda çökme raporları Apple'ın standart sistem araçlarıyla işlenir ve iOS Ayarları üzerinden açık onayını gerektirir.";
+"Advertising" = "Reklamcılık";
+"The current version of REmu does not display advertisements. If a future release introduces ad-supported features, this policy will be updated and consent will be requested where required (e.g., via App Tracking Transparency)." = "REmu'nun mevcut sürümü reklam göstermez. İleride reklam destekli özellikler eklenirse bu politika güncellenir ve gerekli yerlerde (ör. App Tracking Transparency ile) onay istenir.";
+"External Links" = "Dış Bağlantılar";
+"The app's tutorial may reference public websites such as itch.io for legal homebrew games. Following an external link takes you to the third party's own privacy environment, which is governed by their policies, not this one." = "Uygulamanın eğitimi, yasal homebrew oyunlar için itch.io gibi herkese açık web sitelerine atıfta bulunabilir. Bir dış bağlantıyı takip etmek seni üçüncü tarafın kendi gizlilik ortamına götürür; orası bu politikaya değil kendi politikalarına tabidir.";
+"Children's Privacy" = "Çocukların Gizliliği";
+"REmu is not directed at children under 13 and does not knowingly collect data from anyone. If you believe a child has provided personal data through this app, please contact us so we can confirm there is nothing on our end to remove." = "REmu 13 yaşından küçük çocuklara yönelik değildir ve hiç kimseden bilerek veri toplamaz. Bir çocuğun bu uygulama aracılığıyla kişisel veri sağladığını düşünüyorsan lütfen bizimle iletişime geç ki bizde kaldırılacak bir şey olmadığını teyit edelim.";
+"Contact" = "İletişim";
+"For privacy questions, please contact: fatihkcf@gmail.com" = "Gizlilik soruların için lütfen iletişime geç: fatihkcf@gmail.com";
+"Changes" = "Değişiklikler";
+"We may revise this policy. The \"Last updated\" date above reflects the most recent revision." = "Bu politikayı revize edebiliriz. Yukarıdaki \"Son güncelleme\" tarihi en son revizyonu yansıtır.";
+
+/* EULAView */
+"Welcome to REmu" = "REmu'ya Hoş Geldin";
+"Terms of Use" = "Kullanım Şartları";
+"Privacy Policy" = "Gizlilik Politikası";
+"Please review and accept the terms before continuing." = "Devam etmeden önce lütfen şartları incele ve kabul et.";
+"Below are the terms you accepted when first launching REmu." = "Aşağıda, REmu'yu ilk açtığında kabul ettiğin şartlar yer alıyor.";
+"1. No Bundled Games or BIOS" = "1. Paketlenmiş Oyun veya BIOS Yok";
+"REmu does not provide, distribute, or include any commercial game ROMs, BIOS files, or other copyrighted content. The only software bundled with this application is the original Glowchase demo and the emulation framework itself." = "REmu hiçbir ticari oyun ROM'u, BIOS dosyası veya başka telifli içerik sağlamaz, dağıtmaz ya da içermez. Bu uygulamayla paketlenen tek yazılım, özgün Glowchase demosu ve emülasyon çatısının kendisidir.";
+"2. Your Responsibility" = "2. Senin Sorumluluğun";
+"You are solely responsible for the legality of any file you import into this application. By importing a ROM or BIOS, you confirm that (a) you legally own the original game cartridge, disc, or console, and you produced the file by dumping hardware you own, OR (b) the file is free homebrew, public domain, or otherwise covered by a license that permits your use." = "Bu uygulamaya aktardığın herhangi bir dosyanın yasallığından yalnızca sen sorumlusun. Bir ROM veya BIOS aktararak şunu onaylarsın: (a) orijinal oyun kartuşuna, diskine veya konsoluna yasal olarak sahipsin ve dosyayı sahip olduğun donanımdan kendin kopyalayarak ürettin VEYA (b) dosya ücretsiz homebrew, kamu malı ya da kullanımına izin veren bir lisans kapsamındadır.";
+"3. No ROM Sharing" = "3. ROM Paylaşımı Yok";
+"REmu does not include, link to, or facilitate access to any ROM download service. Downloading or distributing ROMs of games you do not own is illegal in most jurisdictions and constitutes a violation of these terms and your local copyright law." = "REmu hiçbir ROM indirme hizmetini içermez, bağlantı vermez veya bunlara erişimi kolaylaştırmaz. Sahip olmadığın oyunların ROM'larını indirmek veya dağıtmak çoğu ülkede yasa dışıdır ve bu şartların ile yerel telif hakkı yasanın ihlalini oluşturur.";
+"4. Privacy" = "4. Gizlilik";
+"REmu stores all save states and imported files locally on your device. No game data, save states, or imported ROMs are uploaded to any server, and the developer has no access to them." = "REmu tüm kayıt durumlarını ve aktarılan dosyaları cihazında yerel olarak saklar. Hiçbir oyun verisi, kayıt durumu veya aktarılan ROM bir sunucuya yüklenmez ve geliştiricinin bunlara erişimi yoktur.";
+"5. No Warranty" = "5. Garanti Yok";
+"REmu is provided \"as-is\" without warranty of any kind, express or implied. The developer is not liable for any damages, data loss, or legal consequences arising from your use of this software or any content you choose to load into it." = "REmu, açık veya zımni hiçbir garanti olmaksızın \"olduğu gibi\" sunulur. Geliştirici; bu yazılımı kullanmandan ya da içine yüklemeyi seçtiğin herhangi bir içerikten kaynaklanan hiçbir zarardan, veri kaybından veya yasal sonuçtan sorumlu değildir.";
+"6. Trademarks & Affiliation" = "6. Ticari Markalar ve Bağlılık";
+"REmu is an independent project and is not affiliated with, endorsed by, or sponsored by Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation, or any other console manufacturer. All trademarks, product names, console designs, and logos are the property of their respective owners. References to console identifiers within the application are made for technical interoperability only." = "REmu bağımsız bir projedir; Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation veya başka herhangi bir konsol üreticisiyle bağlantılı değildir, onlar tarafından onaylanmamış ya da desteklenmemiştir. Tüm ticari markalar, ürün adları, konsol tasarımları ve logolar ilgili sahiplerinin mülkiyetindedir. Uygulama içindeki konsol tanımlayıcılarına yapılan atıflar yalnızca teknik birlikte çalışabilirlik içindir.";
+"I have read and agree to the terms above" = "Yukarıdaki şartları okudum ve kabul ediyorum";
+"Continue" = "Devam Et";
+"Close" = "Kapat";
+
+/* TutorialView */
+"How to Use" = "Nasıl Kullanılır";
+"Legal Notice" = "Yasal Uyarı";
+"REmu is an emulation platform. It does not include any game software or BIOS files. You are solely responsible for ensuring you have the legal right to use any files you load into this app." = "REmu bir emülasyon platformudur. Hiçbir oyun yazılımı veya BIOS dosyası içermez. Bu uygulamaya yüklediğin dosyaları kullanma yasal hakkına sahip olduğundan emin olmak yalnızca senin sorumluluğundadır.";
+"Step %lld" = "Adım %lld";
+"Obtain ROMs Legally" = "ROM'ları Yasal Yoldan Edin";
+"Dump your own physical cartridges or discs using a dedicated dumper device. You must own the original media. Do not download ROMs from the internet — sharing or distributing copyrighted game files is illegal." = "Kendi fiziksel kartuşlarını veya disklerini özel bir kopyalama (dumper) cihazıyla kopyala. Orijinal medyaya sahip olmalısın. ROM'ları internetten indirme — telifli oyun dosyalarını paylaşmak veya dağıtmak yasa dışıdır.";
+"Free Legal Alternatives" = "Ücretsiz Yasal Alternatifler";
+"If you don't have a dumper, many systems have free homebrew and public-domain games you can use legally — for example, GB Studio releases on itch.io, NES homebrew (Nebs 'n Debs, Witch n Wiz), or Genesis SGDK demos. Always read the license before importing a file." = "Bir kopyalama cihazın yoksa, birçok sistemin yasal olarak kullanabileceğin ücretsiz homebrew ve kamu malı oyunları vardır — örneğin itch.io'daki GB Studio yapımları, NES homebrew oyunları (Nebs 'n Debs, Witch n Wiz) veya Genesis SGDK demoları. Bir dosyayı aktarmadan önce daima lisansını oku.";
+"Import Your ROM" = "ROM'unu İçe Aktar";
+"Tap the + button on the Library screen. Select your ROM file from the Files app. Supported formats: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (Game Boy family), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1)." = "Kütüphane ekranındaki + düğmesine dokun. ROM dosyanı Dosyalar uygulamasından seç. Desteklenen biçimler: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (Game Boy ailesi), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1).";
+"Place BIOS Files" = "BIOS Dosyalarını Yerleştir";
+"Some systems require a BIOS dump from your own console. Place BIOS files in the /System folder inside the app's Documents directory (Files → REmu → System). You must dump the BIOS yourself from hardware you own." = "Bazı sistemler kendi konsolundan alınmış bir BIOS kopyası gerektirir. BIOS dosyalarını, uygulamanın Documents dizinindeki /System klasörüne koy (Dosyalar → REmu → System). BIOS'u sahip olduğun donanımdan kendin kopyalamalısın.";
+"Launch & Play" = "Başlat ve Oyna";
+"Tap any ROM card to start. Use the on-screen controller, or connect a MFi/Bluetooth gamepad. Use the menu (⋮) to save/load states or return to the library." = "Başlamak için herhangi bir ROM kartına dokun. Ekrandaki kumandayı kullan veya bir MFi/Bluetooth oyun kolu bağla. Durumları kaydetmek/yüklemek ya da kütüphaneye dönmek için menüyü (⋮) kullan.";
+"Save States" = "Kayıt Durumları";
+"Tap the Save button during gameplay to create a snapshot. Load it anytime via Quick Load. States are stored locally in /SaveStates and are never uploaded anywhere." = "Oyun sırasında anlık görüntü oluşturmak için Kaydet düğmesine dokun. Hızlı Yükle ile istediğin zaman geri yükle. Durumlar /SaveStates içinde yerel olarak saklanır ve hiçbir yere yüklenmez.";
+
+/* CoilpedeView / Glowchase */
+"Swipe\nor\nD-Pad" = "Kaydır\nveya\nD-Pad";
+"Paused" = "Duraklatıldı";
+"Resume" = "Devam Et";
+"Restart" = "Yeniden Başlat";
+"Exit" = "Çıkış";
+"Game Over" = "Oyun Bitti";
+"Score: %lld" = "Skor: %lld";
+"Guide the coil — chase the glow" = "Halkayı yönlendir — ışığı kovala";
+"Play Again" = "Tekrar Oyna";
+"Start" = "Başla";
+"BUILT-IN" = "DAHİLİ";
+"SCORE" = "SKOR";
+"BEST" = "EN İYİ";
+
+/* MetalGameView — oyun içi menü, bildirimler, hatalar */
+"Save State" = "Durumu Kaydet";
+"Load State" = "Durumu Yükle";
+"Exit to Library" = "Kütüphaneye Çık";
+"Couldn't start this game" = "Bu oyun başlatılamadı";
+"%@ couldn't be started. This system may be unsupported on this device, or a required BIOS file is missing — PlayStation games need a BIOS file you provide yourself. The built-in Glowchase demo always works." = "%@ başlatılamadı. Bu sistem bu cihazda desteklenmiyor olabilir ya da gerekli bir BIOS dosyası eksik olabilir — özellikle PlayStation oyunları, kendi sağlayacağın bir BIOS dosyası gerektirir. Dahili Glowchase demosu her zaman çalışır.";
+"Back to Library" = "Kütüphaneye Dön";
+"Save failed" = "Kaydetme başarısız";
+"State saved" = "Durum kaydedildi";
+"Save error" = "Kaydetme hatası";
+"No save found" = "Kayıt bulunamadı";
+"State loaded" = "Durum yüklendi";
+"Load error" = "Yükleme hatası";

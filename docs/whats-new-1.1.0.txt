@@ -1,0 +1,7 @@
+Yeni: 1.1.0 ile kütüphaneniz büyüdü!
+
+• Artık daha fazla klasik sistemi destekliyoruz: NES, Game Boy, Game Boy Color, Sega Genesis, Master System ve Game Gear — ayrıca deneysel PlayStation desteği. (Mevcut SNES ve GBA desteğine ek olarak.)
+• Kendi oyun dosyalarınızı içe aktarın, REmu sistemi otomatik tanısın.
+• Kararlılık ve performans iyileştirmeleri.
+
+Her zamanki gibi: yalnızca yasal olarak sahip olduğunuz dosyaları kullanın. Oyun veya BIOS içermez.

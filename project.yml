@@ -8,6 +8,10 @@ options:
     iOS: "15.0"
   xcodeVersion: "15.0"
   createIntermediateGroups: true
+  # Base language is English; Resources/en.lproj + tr.lproj supply the
+  # Localizable.strings tables. XcodeGen auto-detects the .lproj folders
+  # under the Resources path and registers en + tr as known regions.
+  developmentLanguage: en
 
 settings:
   base:
@@ -42,7 +46,13 @@ targets:
       properties:
         CFBundleDisplayName: REmu Retro
         CFBundleShortVersionString: "1.1.0"
-        CFBundleVersion: "7"
+        CFBundleVersion: "8"
+        # English + Turkish UI. Declaring both here makes the App Store list
+        # the app as available in both languages and pins the base language.
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations:
+          - en
+          - tr
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft

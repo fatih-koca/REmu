@@ -1,0 +1,111 @@
+/* REmu — English (base) localization.
+   Keys are the English UI strings used directly in the SwiftUI views. */
+
+/* ContentView — library */
+"Built-in Demo" = "Built-in Demo";
+"Grow the chain, chase the glow" = "Grow the chain, chase the glow";
+"No ROM needed · 100% original" = "No ROM needed · 100% original";
+"Your Library" = "Your Library";
+"No ROMs imported" = "No ROMs imported";
+"Tap + to import your ROM files" = "Tap + to import your ROM files";
+"Remove" = "Remove";
+
+/* SettingsView */
+"Settings" = "Settings";
+"Done" = "Done";
+"LIBRARY" = "LIBRARY";
+"LEGAL" = "LEGAL";
+"ABOUT" = "ABOUT";
+"Auto-download cover art" = "Auto-download cover art";
+"Fetches public box art from GitHub when a ROM has no embedded cover. Off by default." = "Fetches public box art from GitHub when a ROM has no embedded cover. Off by default.";
+"Version" = "Version";
+"Review the agreement you accepted" = "Review the agreement you accepted";
+"What data REmu does and doesn't collect" = "What data REmu does and doesn't collect";
+"Last updated: April 26, 2026" = "Last updated: April 26, 2026";
+"View Online" = "View Online";
+"REmu is built to respect your privacy. This document describes what data the app handles and what it does not." = "REmu is built to respect your privacy. This document describes what data the app handles and what it does not.";
+"No Personal Data Collected" = "No Personal Data Collected";
+"REmu does not collect, store, or transmit any personally identifiable information. We do not require an account, and we do not log your activity." = "REmu does not collect, store, or transmit any personally identifiable information. We do not require an account, and we do not log your activity.";
+"Local-Only Storage" = "Local-Only Storage";
+"All ROM files, save states, and screenshots remain on your device, inside the app's protected sandbox. They are never uploaded to any server, shared with us, or made available to third parties." = "All ROM files, save states, and screenshots remain on your device, inside the app's protected sandbox. They are never uploaded to any server, shared with us, or made available to third parties.";
+"No Analytics or Tracking" = "No Analytics or Tracking";
+"This version of REmu does not include any analytics SDK, tracking pixel, or third-party telemetry. Crash reports, if shared, are handled by Apple's standard system tooling and require your explicit opt-in via iOS Settings." = "This version of REmu does not include any analytics SDK, tracking pixel, or third-party telemetry. Crash reports, if shared, are handled by Apple's standard system tooling and require your explicit opt-in via iOS Settings.";
+"Advertising" = "Advertising";
+"The current version of REmu does not display advertisements. If a future release introduces ad-supported features, this policy will be updated and consent will be requested where required (e.g., via App Tracking Transparency)." = "The current version of REmu does not display advertisements. If a future release introduces ad-supported features, this policy will be updated and consent will be requested where required (e.g., via App Tracking Transparency).";
+"External Links" = "External Links";
+"The app's tutorial may reference public websites such as itch.io for legal homebrew games. Following an external link takes you to the third party's own privacy environment, which is governed by their policies, not this one." = "The app's tutorial may reference public websites such as itch.io for legal homebrew games. Following an external link takes you to the third party's own privacy environment, which is governed by their policies, not this one.";
+"Children's Privacy" = "Children's Privacy";
+"REmu is not directed at children under 13 and does not knowingly collect data from anyone. If you believe a child has provided personal data through this app, please contact us so we can confirm there is nothing on our end to remove." = "REmu is not directed at children under 13 and does not knowingly collect data from anyone. If you believe a child has provided personal data through this app, please contact us so we can confirm there is nothing on our end to remove.";
+"Contact" = "Contact";
+"For privacy questions, please contact: fatihkcf@gmail.com" = "For privacy questions, please contact: fatihkcf@gmail.com";
+"Changes" = "Changes";
+"We may revise this policy. The \"Last updated\" date above reflects the most recent revision." = "We may revise this policy. The \"Last updated\" date above reflects the most recent revision.";
+
+/* EULAView */
+"Welcome to REmu" = "Welcome to REmu";
+"Terms of Use" = "Terms of Use";
+"Privacy Policy" = "Privacy Policy";
+"Please review and accept the terms before continuing." = "Please review and accept the terms before continuing.";
+"Below are the terms you accepted when first launching REmu." = "Below are the terms you accepted when first launching REmu.";
+"1. No Bundled Games or BIOS" = "1. No Bundled Games or BIOS";
+"REmu does not provide, distribute, or include any commercial game ROMs, BIOS files, or other copyrighted content. The only software bundled with this application is the original Glowchase demo and the emulation framework itself." = "REmu does not provide, distribute, or include any commercial game ROMs, BIOS files, or other copyrighted content. The only software bundled with this application is the original Glowchase demo and the emulation framework itself.";
+"2. Your Responsibility" = "2. Your Responsibility";
+"You are solely responsible for the legality of any file you import into this application. By importing a ROM or BIOS, you confirm that (a) you legally own the original game cartridge, disc, or console, and you produced the file by dumping hardware you own, OR (b) the file is free homebrew, public domain, or otherwise covered by a license that permits your use." = "You are solely responsible for the legality of any file you import into this application. By importing a ROM or BIOS, you confirm that (a) you legally own the original game cartridge, disc, or console, and you produced the file by dumping hardware you own, OR (b) the file is free homebrew, public domain, or otherwise covered by a license that permits your use.";
+"3. No ROM Sharing" = "3. No ROM Sharing";
+"REmu does not include, link to, or facilitate access to any ROM download service. Downloading or distributing ROMs of games you do not own is illegal in most jurisdictions and constitutes a violation of these terms and your local copyright law." = "REmu does not include, link to, or facilitate access to any ROM download service. Downloading or distributing ROMs of games you do not own is illegal in most jurisdictions and constitutes a violation of these terms and your local copyright law.";
+"4. Privacy" = "4. Privacy";
+"REmu stores all save states and imported files locally on your device. No game data, save states, or imported ROMs are uploaded to any server, and the developer has no access to them." = "REmu stores all save states and imported files locally on your device. No game data, save states, or imported ROMs are uploaded to any server, and the developer has no access to them.";
+"5. No Warranty" = "5. No Warranty";
+"REmu is provided \"as-is\" without warranty of any kind, express or implied. The developer is not liable for any damages, data loss, or legal consequences arising from your use of this software or any content you choose to load into it." = "REmu is provided \"as-is\" without warranty of any kind, express or implied. The developer is not liable for any damages, data loss, or legal consequences arising from your use of this software or any content you choose to load into it.";
+"6. Trademarks & Affiliation" = "6. Trademarks & Affiliation";
+"REmu is an independent project and is not affiliated with, endorsed by, or sponsored by Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation, or any other console manufacturer. All trademarks, product names, console designs, and logos are the property of their respective owners. References to console identifiers within the application are made for technical interoperability only." = "REmu is an independent project and is not affiliated with, endorsed by, or sponsored by Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation, or any other console manufacturer. All trademarks, product names, console designs, and logos are the property of their respective owners. References to console identifiers within the application are made for technical interoperability only.";
+"I have read and agree to the terms above" = "I have read and agree to the terms above";
+"Continue" = "Continue";
+"Close" = "Close";
+
+/* TutorialView */
+"How to Use" = "How to Use";
+"Legal Notice" = "Legal Notice";
+"REmu is an emulation platform. It does not include any game software or BIOS files. You are solely responsible for ensuring you have the legal right to use any files you load into this app." = "REmu is an emulation platform. It does not include any game software or BIOS files. You are solely responsible for ensuring you have the legal right to use any files you load into this app.";
+"Step %lld" = "Step %lld";
+"Obtain ROMs Legally" = "Obtain ROMs Legally";
+"Dump your own physical cartridges or discs using a dedicated dumper device. You must own the original media. Do not download ROMs from the internet — sharing or distributing copyrighted game files is illegal." = "Dump your own physical cartridges or discs using a dedicated dumper device. You must own the original media. Do not download ROMs from the internet — sharing or distributing copyrighted game files is illegal.";
+"Free Legal Alternatives" = "Free Legal Alternatives";
+"If you don't have a dumper, many systems have free homebrew and public-domain games you can use legally — for example, GB Studio releases on itch.io, NES homebrew (Nebs 'n Debs, Witch n Wiz), or Genesis SGDK demos. Always read the license before importing a file." = "If you don't have a dumper, many systems have free homebrew and public-domain games you can use legally — for example, GB Studio releases on itch.io, NES homebrew (Nebs 'n Debs, Witch n Wiz), or Genesis SGDK demos. Always read the license before importing a file.";
+"Import Your ROM" = "Import Your ROM";
+"Tap the + button on the Library screen. Select your ROM file from the Files app. Supported formats: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (Game Boy family), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1)." = "Tap the + button on the Library screen. Select your ROM file from the Files app. Supported formats: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (Game Boy family), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1).";
+"Place BIOS Files" = "Place BIOS Files";
+"Some systems require a BIOS dump from your own console. Place BIOS files in the /System folder inside the app's Documents directory (Files → REmu → System). You must dump the BIOS yourself from hardware you own." = "Some systems require a BIOS dump from your own console. Place BIOS files in the /System folder inside the app's Documents directory (Files → REmu → System). You must dump the BIOS yourself from hardware you own.";
+"Launch & Play" = "Launch & Play";
+"Tap any ROM card to start. Use the on-screen controller, or connect a MFi/Bluetooth gamepad. Use the menu (⋮) to save/load states or return to the library." = "Tap any ROM card to start. Use the on-screen controller, or connect a MFi/Bluetooth gamepad. Use the menu (⋮) to save/load states or return to the library.";
+"Save States" = "Save States";
+"Tap the Save button during gameplay to create a snapshot. Load it anytime via Quick Load. States are stored locally in /SaveStates and are never uploaded anywhere." = "Tap the Save button during gameplay to create a snapshot. Load it anytime via Quick Load. States are stored locally in /SaveStates and are never uploaded anywhere.";
+
+/* CoilpedeView / Glowchase */
+"Swipe\nor\nD-Pad" = "Swipe\nor\nD-Pad";
+"Paused" = "Paused";
+"Resume" = "Resume";
+"Restart" = "Restart";
+"Exit" = "Exit";
+"Game Over" = "Game Over";
+"Score: %lld" = "Score: %lld";
+"Guide the coil — chase the glow" = "Guide the coil — chase the glow";
+"Play Again" = "Play Again";
+"Start" = "Start";
+"BUILT-IN" = "BUILT-IN";
+"SCORE" = "SCORE";
+"BEST" = "BEST";
+
+/* MetalGameView — in-game menu, toasts, errors */
+"Save State" = "Save State";
+"Load State" = "Load State";
+"Exit to Library" = "Exit to Library";
+"Couldn't start this game" = "Couldn't start this game";
+"%@ couldn't be started. This system may be unsupported on this device, or a required BIOS file is missing — PlayStation games need a BIOS file you provide yourself. The built-in Glowchase demo always works." = "%@ couldn't be started. This system may be unsupported on this device, or a required BIOS file is missing — PlayStation games need a BIOS file you provide yourself. The built-in Glowchase demo always works.";
+"Back to Library" = "Back to Library";
+"Save failed" = "Save failed";
+"State saved" = "State saved";
+"Save error" = "Save error";
+"No save found" = "No save found";
+"State loaded" = "State loaded";
+"Load error" = "Load error";
