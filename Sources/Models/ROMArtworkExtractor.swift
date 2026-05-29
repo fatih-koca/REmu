@@ -166,18 +166,15 @@ enum ROMArtworkExtractor {
     // MARK: Dispatch
 
     private static func readArtwork(from url: URL, console: ConsoleSystem) -> UIImage? {
-        let ext = url.pathExtension.lowercased()
-        switch console {
-        case .psp where ext == "pbp":
-            return PBPReader.icon(at: url)
-        case .psp where ext == "iso" || ext == "cso":
-            return ISO9660Reader.firstFile(at: url, named: "ICON0.PNG")
-                .flatMap(UIImage.init(data:))
-        case .gamecube:
-            return GameCubeBannerReader.banner(at: url)
-        default:
-            return nil
-        }
+        // None of the currently-supported systems (NES, SNES, GB/GBC/GBA,
+        // Genesis/SMS/GG, PS1) embed cover art inside the ROM or disc image,
+        // so there's nothing to pull out synchronously — covers come from the
+        // opt-in libretro-thumbnails lookup instead. The PBP / ISO9660 /
+        // GameCube disc readers below are kept for a future re-add of a
+        // disc-based system that does carry embedded art.
+        _ = url
+        _ = console
+        return nil
     }
 
     private static func write(_ image: UIImage, id: UUID) -> URL? {
@@ -202,12 +199,15 @@ enum ROMArtworkExtractor {
 private extension ConsoleSystem {
     var libretroThumbnailFolder: String? {
         switch self {
+        case .nes:      return "Nintendo_-_Nintendo_Entertainment_System"
         case .snes:     return "Nintendo_-_Super_Nintendo_Entertainment_System"
+        case .gb:       return "Nintendo_-_Game_Boy"
+        case .gbc:      return "Nintendo_-_Game_Boy_Color"
         case .gba:      return "Nintendo_-_Game_Boy_Advance"
+        case .genesis:  return "Sega_-_Mega_Drive_-_Genesis"
+        case .sms:      return "Sega_-_Master_System_-_Mark_III"
+        case .gamegear: return "Sega_-_Game_Gear"
         case .ps1:      return "Sony_-_PlayStation"
-        case .ps2:      return "Sony_-_PlayStation_2"
-        case .gamecube: return "Nintendo_-_GameCube"
-        case .psp:      return "Sony_-_PlayStation_Portable"
         }
     }
 }

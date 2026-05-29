@@ -41,8 +41,8 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: REmu Retro
-        CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "6"
+        CFBundleShortVersionString: "1.1.0"
+        CFBundleVersion: "7"
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft
@@ -121,5 +121,14 @@ targets:
         embed: true
         codeSign: true
       - framework: CoreFrameworks/mgba_libretro_ios.framework
+        embed: true
+        codeSign: true
+      - framework: CoreFrameworks/fceumm_libretro_ios.framework
+        embed: true
+        codeSign: true
+      - framework: CoreFrameworks/genesis_plus_gx_libretro_ios.framework
+        embed: true
+        codeSign: true
+      - framework: CoreFrameworks/mednafen_psx_libretro_ios.framework
         embed: true
         codeSign: true

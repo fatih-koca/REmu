@@ -4,49 +4,69 @@ import UniformTypeIdentifiers
 // MARK: - Console System
 
 enum ConsoleSystem: String, Codable, CaseIterable {
+    case nes       = "Nintendo Entertainment System"
     case snes      = "Super Nintendo"
+    case gb        = "Game Boy"
+    case gbc       = "Game Boy Color"
     case gba       = "Game Boy Advance"
+    case genesis   = "Sega Genesis"
+    case sms       = "Sega Master System"
+    case gamegear  = "Game Gear"
     case ps1       = "PlayStation"
-    case ps2       = "PlayStation 2"
-    case gamecube  = "GameCube"
-    case psp       = "PSP"
-    // n64 was removed when we discovered mupen64plus_next requires
-    // a full OpenGL HW-render context that REmu's software-only
-    // pipeline doesn't provide. Re-add it (and a GL bridge) when
-    // we're ready to commit to that work.
+    // PS2 / GameCube / PSP / N64 are intentionally NOT here. Their libretro
+    // cores require a hardware OpenGL render context (pcsx2, dolphin, ppsspp,
+    // mupen64plus_next) and in most cases a JIT recompiler — neither of which
+    // REmu's software-only pipeline (and iOS's no-JIT policy) can provide.
+    // Re-add them only once a GL bridge exists. Every other case below is a
+    // software-rendered core that runs fine on-device.
+    //
+    // Detection order = declaration order (see detectConsole). Keep PS1 last
+    // so its generic disc extensions (bin/cue/iso/img) never shadow a more
+    // specific cartridge extension above it.
 
     var fileExtensions: [String] {
         switch self {
+        case .nes:      return ["nes", "unf", "unif"]
         case .snes:     return ["smc", "sfc", "fig", "swc"]
+        case .gb:       return ["gb"]
+        case .gbc:      return ["gbc"]
         case .gba:      return ["gba"]
-        case .ps1:      return ["bin", "cue", "iso", "img"]
-        case .ps2:      return ["iso", "bin"]
-        case .gamecube: return ["iso", "gcm", "gcz"]
-        case .psp:      return ["iso", "cso", "pbp"]
+        case .genesis:  return ["md", "gen", "smd"]   // NOT "bin": PS1 owns .bin
+        case .sms:      return ["sms"]
+        case .gamegear: return ["gg"]
+        case .ps1:      return ["cue", "bin", "iso", "img", "pbp", "chd"]
         }
     }
 
     /// Matches the on-disk core filename: <coreIdentifier>_libretro_ios.dylib
-    /// e.g. snes9x_libretro_ios.dylib for the SNES core.
+    /// e.g. snes9x_libretro_ios.dylib for the SNES core. Several systems map
+    /// to the same multi-system core (mGBA does GB/GBC/GBA; Genesis Plus GX
+    /// does Genesis/Master System/Game Gear), so only four cores ship.
     var coreIdentifier: String {
         switch self {
+        case .nes:      return "fceumm"
         case .snes:     return "snes9x"
+        case .gb:       return "mgba"
+        case .gbc:      return "mgba"
         case .gba:      return "mgba"
+        case .genesis:  return "genesis_plus_gx"
+        case .sms:      return "genesis_plus_gx"
+        case .gamegear: return "genesis_plus_gx"
         case .ps1:      return "mednafen_psx"
-        case .ps2:      return "pcsx2"
-        case .gamecube: return "dolphin"
-        case .psp:      return "ppsspp"
         }
     }
 
     var systemIcon: String {
         switch self {
-        case .snes:     return "gamecontroller"
+        case .nes:      return "gamecontroller"
+        case .snes:     return "gamecontroller.fill"
+        case .gb:       return "rectangle.portrait"
+        case .gbc:      return "rectangle.portrait.fill"
         case .gba:      return "gamecontroller.fill"
+        case .genesis:  return "gamecontroller"
+        case .sms:      return "gamecontroller"
+        case .gamegear: return "rectangle.fill"
         case .ps1:      return "gamecontroller.fill"
-        case .ps2:      return "gamecontroller"
-        case .gamecube: return "cube"
-        case .psp:      return "rectangle.fill"
         }
     }
 
@@ -55,15 +75,18 @@ enum ConsoleSystem: String, Codable, CaseIterable {
     /// is the Codable persistence key for `library.json` — renaming it
     /// would invalidate every existing entry. Abbreviations also keep
     /// trademarked product names (Super Nintendo, PlayStation, …) out of
-    /// the binary's visible strings, which is the safer App Store posture.
+    /// the UI, which is the safer App Store posture.
     var displayName: String {
         switch self {
+        case .nes:      return "NES"
         case .snes:     return "SNES"
+        case .gb:       return "GB"
+        case .gbc:      return "GBC"
         case .gba:      return "GBA"
+        case .genesis:  return "GEN"
+        case .sms:      return "SMS"
+        case .gamegear: return "GG"
         case .ps1:      return "PS1"
-        case .ps2:      return "PS2"
-        case .gamecube: return "GCN"
-        case .psp:      return "PSP"
         }
     }
 }
