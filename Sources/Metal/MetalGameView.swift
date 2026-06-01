@@ -18,6 +18,11 @@ struct EmulatorScreenView: View {
     @State private var leftColWidth: CGFloat = 106
     @State private var rightColWidth: CGFloat = 110
 
+    // User control-customization (set in Settings → Controls).
+    @AppStorage("remu.controls.scale")   private var controlScale: Double = 1.0
+    @AppStorage("remu.controls.voffset") private var controlVOffset: Double = 0
+    @AppStorage("remu.controls.opacity") private var controlOpacity: Double = 1.0
+
     var body: some View {
         ZStack(alignment: .bottom) {
             // Game + controls handles its own safe-area logic via the
@@ -36,6 +41,7 @@ struct EmulatorScreenView: View {
                 onFastForward: { fastForward = $0 }
             )
                 .padding(.bottom, 8)
+                .opacity(controlOpacity)
                 .allowsHitTesting(!showMenu && !coreLoadFailed)
         }
         // Menu rendered at body level so it centers within the SAFE AREA
@@ -85,9 +91,9 @@ struct EmulatorScreenView: View {
                     rom: rom,
                     safeAreaInsets: EdgeInsets(
                         top:      0,
-                        leading:  inset.leading  + hPad + leftColWidth,
+                        leading:  inset.leading  + hPad + leftColWidth  * CGFloat(controlScale),
                         bottom:   0,
-                        trailing: inset.trailing + hPad + rightColWidth
+                        trailing: inset.trailing + hPad + rightColWidth * CGFloat(controlScale)
                     ),
                     // Freeze the core's clock while the in-game menu is up,
                     // while the save-states picker sheet is open, or while a
@@ -119,12 +125,19 @@ struct EmulatorScreenView: View {
                 .padding(.top,      max(inset.top,    4))
                 .padding(.bottom,   max(inset.bottom, 4))
 
-                // Left + Right control columns
+                // Left + Right control columns. Scaled from the outer edge so
+                // they grow inward into the canvas inset we reserved above;
+                // the width preferences are measured pre-scale so the inset
+                // math stays correct.
                 HStack(spacing: 0) {
                     LeftControlColumn(screenSize: geo.size, onAction: handleGamepadAction)
+                        .scaleEffect(CGFloat(controlScale), anchor: .leading)
                     Spacer(minLength: 0)
                     RightControlColumn(screenSize: geo.size, onAction: handleGamepadAction)
+                        .scaleEffect(CGFloat(controlScale), anchor: .trailing)
                 }
+                .offset(y: CGFloat(controlVOffset))
+                .opacity(controlOpacity)
                 .padding(.leading,  inset.leading  + hPad)
                 .padding(.trailing, inset.trailing + hPad)
                 .padding(.top,      max(inset.top,    4) + 56)

@@ -21,6 +21,12 @@ struct SettingsView: View {
     @AppStorage("remu.library.autoDownloadCovers")
     private var autoDownloadCovers: Bool = false
 
+    // On-screen control customization. Read by the emulator screen
+    // (EmulatorScreenView) to scale, shift and fade the touch controls.
+    @AppStorage("remu.controls.scale")   private var controlScale: Double = 1.0
+    @AppStorage("remu.controls.voffset") private var controlVOffset: Double = 0
+    @AppStorage("remu.controls.opacity") private var controlOpacity: Double = 1.0
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -29,6 +35,7 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(spacing: 24) {
                         librarySection
+                        controlsSection
                         legalSection
                         aboutSection
                         Spacer(minLength: 20)
@@ -83,6 +90,51 @@ struct SettingsView: View {
             }
             .background(rowGroupBackground)
         }
+    }
+
+    private var controlsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(icon: "gamecontroller", label: "CONTROLS", tint: .green)
+
+            VStack(spacing: 16) {
+                sliderRow(title: "Button Size", value: $controlScale, range: 0.7...1.3)
+                Divider().background(Color.white.opacity(0.08))
+                sliderRow(title: "Vertical Position", value: $controlVOffset, range: -60...60)
+                Divider().background(Color.white.opacity(0.08))
+                sliderRow(title: "Opacity", value: $controlOpacity, range: 0.3...1.0)
+                Divider().background(Color.white.opacity(0.08))
+                Button(action: resetControls) {
+                    Text("Reset to Default")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.orange)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(14)
+            .background(rowGroupBackground)
+        }
+    }
+
+    private func sliderRow(
+        title: LocalizedStringKey,
+        value: Binding<Double>,
+        range: ClosedRange<Double>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(.white)
+            Slider(value: value, in: range)
+                .tint(.green)
+        }
+    }
+
+    private func resetControls() {
+        controlScale = 1.0
+        controlVOffset = 0
+        controlOpacity = 1.0
     }
 
     private var legalSection: some View {

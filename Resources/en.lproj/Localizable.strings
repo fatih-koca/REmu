@@ -115,3 +115,10 @@
 "No save states yet" = "No save states yet";
 "Tap + to save your current progress. You can keep as many save points as you like." = "Tap + to save your current progress. You can keep as many save points as you like.";
 "Save %lld" = "Save %lld";
+
+/* SettingsView — control customization */
+"CONTROLS" = "CONTROLS";
+"Button Size" = "Button Size";
+"Vertical Position" = "Vertical Position";
+"Opacity" = "Opacity";
+"Reset to Default" = "Reset to Default";

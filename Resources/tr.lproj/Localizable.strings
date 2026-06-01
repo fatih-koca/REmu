@@ -115,3 +115,10 @@
 "No save states yet" = "Henüz kayıt yok";
 "Tap + to save your current progress. You can keep as many save points as you like." = "İlerlemeni kaydetmek için + simgesine dokun. İstediğin kadar kayıt noktası tutabilirsin.";
 "Save %lld" = "Kayıt %lld";
+
+/* SettingsView — kontrol özelleştirme */
+"CONTROLS" = "KONTROLLER";
+"Button Size" = "Buton Boyutu";
+"Vertical Position" = "Dikey Konum";
+"Opacity" = "Saydamlık";
+"Reset to Default" = "Varsayılana Sıfırla";
