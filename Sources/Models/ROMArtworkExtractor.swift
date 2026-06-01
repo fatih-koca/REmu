@@ -207,6 +207,10 @@ private extension ConsoleSystem {
         case .genesis:  return "Sega_-_Mega_Drive_-_Genesis"
         case .sms:      return "Sega_-_Master_System_-_Mark_III"
         case .gamegear: return "Sega_-_Game_Gear"
+        case .pcengine:   return "NEC_-_PC_Engine_-_TurboGrafx_16"
+        case .atari2600:  return "Atari_-_2600"
+        case .ngpc:       return "SNK_-_Neo_Geo_Pocket_Color"
+        case .wonderswan: return "Bandai_-_WonderSwan_Color"
         case .ps1:      return "Sony_-_PlayStation"
         }
     }

@@ -10,6 +10,10 @@
 #   mgba            → Game Boy + Game Boy Color + GBA (üç sistem, tek core)
 #   fceumm          → NES
 #   genesis_plus_gx → Sega Genesis + Master System + Game Gear (üç sistem)
+#   mednafen_pce_fast → PC Engine / TurboGrafx-16 (kartuş oyunları BIOS istemez)
+#   stella          → Atari 2600
+#   mednafen_ngp    → Neo Geo Pocket / Color
+#   mednafen_wswan  → WonderSwan / Color
 #   mednafen_psx    → PlayStation 1 (DENEYSEL: kendi BIOS dosyanı ister,
 #                     JIT olmadığı için hız oyuna/cihaza göre değişir)
 
@@ -26,6 +30,10 @@ CORES=(
     "mgba_libretro_ios.dylib.zip"
     "fceumm_libretro_ios.dylib.zip"
     "genesis_plus_gx_libretro_ios.dylib.zip"
+    "mednafen_pce_fast_libretro_ios.dylib.zip"
+    "stella_libretro_ios.dylib.zip"
+    "mednafen_ngp_libretro_ios.dylib.zip"
+    "mednafen_wswan_libretro_ios.dylib.zip"
     "mednafen_psx_libretro_ios.dylib.zip"
 )
 

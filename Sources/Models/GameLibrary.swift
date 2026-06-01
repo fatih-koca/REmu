@@ -12,6 +12,10 @@ enum ConsoleSystem: String, Codable, CaseIterable {
     case genesis   = "Sega Genesis"
     case sms       = "Sega Master System"
     case gamegear  = "Game Gear"
+    case pcengine   = "PC Engine"
+    case atari2600  = "Atari 2600"
+    case ngpc       = "Neo Geo Pocket Color"
+    case wonderswan = "WonderSwan"
     case ps1       = "PlayStation"
     // PS2 / GameCube / PSP / N64 are intentionally NOT here. Their libretro
     // cores require a hardware OpenGL render context (pcsx2, dolphin, ppsspp,
@@ -34,6 +38,10 @@ enum ConsoleSystem: String, Codable, CaseIterable {
         case .genesis:  return ["md", "gen", "smd"]   // NOT "bin": PS1 owns .bin
         case .sms:      return ["sms"]
         case .gamegear: return ["gg"]
+        case .pcengine:   return ["pce", "sgx"]
+        case .atari2600:  return ["a26"]              // NOT "bin": PS1 owns .bin
+        case .ngpc:       return ["ngp", "ngc", "npc"]
+        case .wonderswan: return ["ws", "wsc"]
         case .ps1:      return ["cue", "bin", "iso", "img", "pbp", "chd"]
         }
     }
@@ -52,6 +60,10 @@ enum ConsoleSystem: String, Codable, CaseIterable {
         case .genesis:  return "genesis_plus_gx"
         case .sms:      return "genesis_plus_gx"
         case .gamegear: return "genesis_plus_gx"
+        case .pcengine:   return "mednafen_pce_fast"
+        case .atari2600:  return "stella"
+        case .ngpc:       return "mednafen_ngp"
+        case .wonderswan: return "mednafen_wswan"
         case .ps1:      return "mednafen_psx"
         }
     }
@@ -66,6 +78,10 @@ enum ConsoleSystem: String, Codable, CaseIterable {
         case .genesis:  return "gamecontroller"
         case .sms:      return "gamecontroller"
         case .gamegear: return "rectangle.fill"
+        case .pcengine:   return "gamecontroller"
+        case .atari2600:  return "gamecontroller"
+        case .ngpc:       return "rectangle.portrait"
+        case .wonderswan: return "rectangle.portrait.fill"
         case .ps1:      return "gamecontroller.fill"
         }
     }
@@ -86,6 +102,10 @@ enum ConsoleSystem: String, Codable, CaseIterable {
         case .genesis:  return "GEN"
         case .sms:      return "SMS"
         case .gamegear: return "GG"
+        case .pcengine:   return "PCE"
+        case .atari2600:  return "2600"
+        case .ngpc:       return "NGPC"
+        case .wonderswan: return "WS"
         case .ps1:      return "PS1"
         }
     }
