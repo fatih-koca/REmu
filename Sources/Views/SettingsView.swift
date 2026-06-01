@@ -27,6 +27,10 @@ struct SettingsView: View {
     @AppStorage("remu.controls.voffset") private var controlVOffset: Double = 0
     @AppStorage("remu.controls.opacity") private var controlOpacity: Double = 1.0
 
+    // Screen rendering options, read by the Metal renderer.
+    @AppStorage("remu.screen.aspect") private var screenAspect: Int = 0
+    @AppStorage("remu.screen.smooth") private var screenSmooth: Bool = true
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -36,6 +40,7 @@ struct SettingsView: View {
                     VStack(spacing: 24) {
                         librarySection
                         controlsSection
+                        screenSection
                         legalSection
                         aboutSection
                         Spacer(minLength: 20)
@@ -135,6 +140,46 @@ struct SettingsView: View {
         controlScale = 1.0
         controlVOffset = 0
         controlOpacity = 1.0
+    }
+
+    private var screenSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(icon: "rectangle.on.rectangle", label: "SCREEN", tint: .purple)
+
+            VStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Aspect Ratio")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Picker("Aspect Ratio", selection: $screenAspect) {
+                        Text("Fit").tag(0)
+                        Text("Fill").tag(1)
+                        Text("Integer").tag(2)
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                Divider().background(Color.white.opacity(0.08))
+
+                HStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Smooth Pixels")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        Text("Turn off for a sharp, pixel-perfect retro look.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $screenSmooth)
+                        .labelsHidden()
+                        .tint(.purple)
+                }
+            }
+            .padding(14)
+            .background(rowGroupBackground)
+        }
     }
 
     private var legalSection: some View {

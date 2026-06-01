@@ -122,3 +122,12 @@
 "Vertical Position" = "Vertical Position";
 "Opacity" = "Opacity";
 "Reset to Default" = "Reset to Default";
+
+/* SettingsView — screen options */
+"SCREEN" = "SCREEN";
+"Aspect Ratio" = "Aspect Ratio";
+"Fit" = "Fit";
+"Fill" = "Fill";
+"Integer" = "Integer";
+"Smooth Pixels" = "Smooth Pixels";
+"Turn off for a sharp, pixel-perfect retro look." = "Turn off for a sharp, pixel-perfect retro look.";

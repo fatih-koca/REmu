@@ -122,3 +122,12 @@
 "Vertical Position" = "Dikey Konum";
 "Opacity" = "Saydamlık";
 "Reset to Default" = "Varsayılana Sıfırla";
+
+/* SettingsView — ekran seçenekleri */
+"SCREEN" = "EKRAN";
+"Aspect Ratio" = "En-Boy Oranı";
+"Fit" = "Sığdır";
+"Fill" = "Doldur";
+"Integer" = "Tam Kat";
+"Smooth Pixels" = "Pikselleri Yumuşat";
+"Turn off for a sharp, pixel-perfect retro look." = "Keskin, piksel-net retro görünüm için kapat.";

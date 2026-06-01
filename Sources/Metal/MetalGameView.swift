@@ -23,6 +23,10 @@ struct EmulatorScreenView: View {
     @AppStorage("remu.controls.voffset") private var controlVOffset: Double = 0
     @AppStorage("remu.controls.opacity") private var controlOpacity: Double = 1.0
 
+    // Screen options (Settings → Screen).
+    @AppStorage("remu.screen.aspect") private var screenAspect: Int = 0
+    @AppStorage("remu.screen.smooth") private var screenSmooth: Bool = true
+
     var body: some View {
         ZStack(alignment: .bottom) {
             // Game + controls handles its own safe-area logic via the
@@ -100,7 +104,9 @@ struct EmulatorScreenView: View {
                     // core-load failure dialog is shown — no point spinning a
                     // half-loaded core in the background.
                     isPaused: showMenu || coreLoadFailed || showSaveStates,
-                    fastForward: fastForward
+                    fastForward: fastForward,
+                    aspectMode: screenAspect,
+                    smoothing: screenSmooth
                 )
                 // The `.ignoresSafeArea()` on the outer ZStack does not
                 // automatically propagate into a UIViewControllerRepresentable
@@ -256,6 +262,10 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
     /// True while the hold-to-fast-forward button is pressed. The controller
     /// then runs several core frames per display tick (and mutes audio).
     let fastForward: Bool
+    /// Screen options from Settings: 0 fit / 1 fill / 2 integer, and whether
+    /// to smooth (linear) or keep sharp (nearest) pixels.
+    let aspectMode: Int
+    let smoothing: Bool
 
     func makeUIViewController(context: Context) -> MetalGameViewController {
         let vc = MetalGameViewController()
@@ -270,6 +280,7 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
         uiViewController.applySafeAreaInsets(safeAreaInsets)
         uiViewController.setPaused(isPaused)
         uiViewController.setFastForward(fastForward)
+        uiViewController.setScreenOptions(aspectMode: aspectMode, smoothing: smoothing)
     }
 }
 
@@ -291,6 +302,10 @@ final class MetalGameViewController: UIViewController {
     /// Buffered insets from SwiftUI — applied on the renderer if it's already
     /// up, otherwise stashed and replayed at setupMetal() time.
     private var pendingInsets: EdgeInsets = EdgeInsets()
+    // Same pattern for the screen options — the first SwiftUI update can land
+    // before viewDidLoad creates the renderer, so we stash and replay.
+    private var pendingAspectMode = 0
+    private var pendingSmoothing = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -302,6 +317,8 @@ final class MetalGameViewController: UIViewController {
             bottom:   pendingInsets.bottom,
             trailing: pendingInsets.trailing
         )
+        renderer.aspectMode = pendingAspectMode
+        renderer.smoothing  = pendingSmoothing
         startEmulation()
     }
 
@@ -457,6 +474,15 @@ final class MetalGameViewController: UIViewController {
         fastForwardFrames = on ? 3 : 1
         AudioEngine.shared.setMuted(on)
     }
+
+    /// Aspect mode (0 fit / 1 fill / 2 integer) and texture smoothing, set
+    /// from Settings → Screen. Stashed too, in case the renderer isn't up yet.
+    func setScreenOptions(aspectMode: Int, smoothing: Bool) {
+        pendingAspectMode = aspectMode
+        pendingSmoothing  = smoothing
+        renderer?.aspectMode = aspectMode
+        renderer?.smoothing  = smoothing
+    }
 }
 
 // MARK: - Metal Renderer
@@ -467,6 +493,15 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
     private var pipelineState: MTLRenderPipelineState!
     private var texture: MTLTexture?
     private var vertexBuffer: MTLBuffer!
+
+    /// Screen options (set from Settings via the controller).
+    /// 0 = Fit (letterbox, preserve aspect), 1 = Fill (stretch to edges),
+    /// 2 = Integer (largest whole-number pixel multiple — sharpest).
+    var aspectMode: Int = 0
+    /// true = linear sampling (smooth), false = nearest (sharp retro pixels).
+    var smoothing: Bool = true
+    private var nearestSampler: MTLSamplerState!
+    private var linearSampler: MTLSamplerState!
 
     /// Safe-area insets in POINTS, set from SwiftUI. We respect them when
     /// computing the aspect-fit rectangle so the game stays out of the
@@ -485,10 +520,19 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         self.commandQueue = device.makeCommandQueue()!
         super.init()
         buildPipeline(view: view)
+        buildSamplers()
         vertexBuffer = device.makeBuffer(
             length: Self.kVertexFloatCount * MemoryLayout<Float>.stride,
             options: .storageModeShared
         )
+    }
+
+    private func buildSamplers() {
+        let d = MTLSamplerDescriptor()
+        d.minFilter = .nearest; d.magFilter = .nearest
+        nearestSampler = device.makeSamplerState(descriptor: d)
+        d.minFilter = .linear;  d.magFilter = .linear
+        linearSampler  = device.makeSamplerState(descriptor: d)
     }
 
     /// Aspect-fit the game texture inside (drawable − safe-area insets).
@@ -517,13 +561,26 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         let availW = max(viewW - leadPx - trailPx, 1)
         let availH = max(viewH - topPx  - botPx,   1)
 
-        // Aspect-fit texture into that canvas.
+        // Size the game rect inside that canvas per the chosen aspect mode.
         let texAR  = Float(textureWidth) / Float(textureHeight)
-        var fitW   = availW
-        var fitH   = availW / texAR
-        if fitH > availH {
+        var fitW: Float
+        var fitH: Float
+        switch aspectMode {
+        case 1: // Fill — stretch to the whole canvas, ignoring aspect ratio.
+            fitW = availW
             fitH = availH
-            fitW = availH * texAR
+        case 2: // Integer — largest whole-number multiple of the native size.
+            let scale = max(1, floor(min(availW / Float(textureWidth),
+                                         availH / Float(textureHeight))))
+            fitW = Float(textureWidth)  * scale
+            fitH = Float(textureHeight) * scale
+        default: // 0 = Fit — letterbox, preserve aspect.
+            fitW = availW
+            fitH = availW / texAR
+            if fitH > availH {
+                fitH = availH
+                fitW = availH * texAR
+            }
         }
 
         // Center the fit rect inside the SAFE canvas (which itself is offset
@@ -598,6 +655,7 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         encoder.setRenderPipelineState(pipelineState)
         encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         encoder.setFragmentTexture(texture, index: 0)
+        encoder.setFragmentSamplerState(smoothing ? linearSampler : nearestSampler, index: 0)
         encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         encoder.endEncoding()
         commandBuffer.present(drawable)
@@ -616,8 +674,9 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
             out.uv = v[vid].zw;
             return out;
         }
-        fragment float4 frag(Fragment in [[stage_in]], texture2d<float> tex [[texture(0)]]) {
-            constexpr sampler s(filter::linear);
+        fragment float4 frag(Fragment in [[stage_in]],
+                             texture2d<float> tex [[texture(0)]],
+                             sampler s [[sampler(0)]]) {
             return tex.sample(s, in.uv);
         }
         """
