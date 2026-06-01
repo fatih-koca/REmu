@@ -109,3 +109,9 @@
 "No save found" = "No save found";
 "State loaded" = "State loaded";
 "Load error" = "Load error";
+
+/* SaveStatesView — multiple save slots */
+"New Save" = "New Save";
+"No save states yet" = "No save states yet";
+"Tap + to save your current progress. You can keep as many save points as you like." = "Tap + to save your current progress. You can keep as many save points as you like.";
+"Save %lld" = "Save %lld";

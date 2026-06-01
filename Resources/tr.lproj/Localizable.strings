@@ -109,3 +109,9 @@
 "No save found" = "Kayıt bulunamadı";
 "State loaded" = "Durum yüklendi";
 "Load error" = "Yükleme hatası";
+
+/* SaveStatesView — çoklu kayıt slotu */
+"New Save" = "Yeni Kayıt";
+"No save states yet" = "Henüz kayıt yok";
+"Tap + to save your current progress. You can keep as many save points as you like." = "İlerlemeni kaydetmek için + simgesine dokun. İstediğin kadar kayıt noktası tutabilirsin.";
+"Save %lld" = "Kayıt %lld";

@@ -60,6 +60,13 @@ final class SaveStateManager {
         return try Data(contentsOf: fileURL)
     }
 
+    /// Loads a specific save (used by the save-states picker, where the user
+    /// chooses which of several saved points to restore).
+    func loadState(_ state: SaveState) throws -> Data {
+        let fileURL = statesDirectory.appendingPathComponent(state.fileName)
+        return try Data(contentsOf: fileURL)
+    }
+
     func listStates(for romID: UUID) throws -> [SaveState] {
         let metaURL = metadataURL(for: romID)
         guard fm.fileExists(atPath: metaURL.path),

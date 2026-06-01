@@ -8,6 +8,7 @@ struct EmulatorScreenView: View {
     let onExit: () -> Void
 
     @State private var showMenu = false
+    @State private var showSaveStates = false
     @State private var saveMessage: String?
     @State private var coreLoadFailed = false
     // Seeded with the column frame widths from GamepadView; the columns
@@ -41,6 +42,9 @@ struct EmulatorScreenView: View {
         // center — visually low because the home indicator chops the
         // bottom 21pt off the perceived screen.
         .overlay(menuOverlay)
+        .sheet(isPresented: $showSaveStates) {
+            SaveStatesView(romID: rom.id, onMessage: { showToast($0) })
+        }
     }
 
     @ViewBuilder
@@ -49,7 +53,11 @@ struct EmulatorScreenView: View {
             InGameMenuView(
                 rom: rom,
                 onExit: onExit,
-                onDismiss: { showMenu = false }
+                onDismiss: { showMenu = false },
+                onShowSaveStates: {
+                    showMenu = false
+                    showSaveStates = true
+                }
             ) { msg in
                 showToast(msg)
             }
@@ -77,10 +85,11 @@ struct EmulatorScreenView: View {
                         bottom:   0,
                         trailing: inset.trailing + hPad + rightColWidth
                     ),
-                    // Freeze the core's clock while the in-game menu is up
-                    // (or while a core-load failure dialog is shown — no
-                    // point spinning a half-loaded core in the background).
-                    isPaused: showMenu || coreLoadFailed
+                    // Freeze the core's clock while the in-game menu is up,
+                    // while the save-states picker sheet is open, or while a
+                    // core-load failure dialog is shown — no point spinning a
+                    // half-loaded core in the background.
+                    isPaused: showMenu || coreLoadFailed || showSaveStates
                 )
                 // The `.ignoresSafeArea()` on the outer ZStack does not
                 // automatically propagate into a UIViewControllerRepresentable
@@ -576,6 +585,7 @@ struct InGameMenuView: View {
     let rom: ROMEntry
     let onExit: () -> Void
     let onDismiss: () -> Void
+    let onShowSaveStates: () -> Void
     let onMessage: (String) -> Void
 
     var body: some View {
@@ -632,7 +642,7 @@ struct InGameMenuView: View {
                 performSave()
             }
             menuButton("Load State", icon: "arrow.up.circle") {
-                performLoad()
+                onShowSaveStates()
             }
             Divider().background(Color.white.opacity(0.1))
             menuButton("Exit to Library", icon: "house", tint: .red) {
