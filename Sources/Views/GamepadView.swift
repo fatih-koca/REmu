@@ -375,11 +375,15 @@ private struct CompactShoulder: View {
 
 struct StartSelectBar: View {
     let onAction: (GamepadAction) -> Void
+    /// Hold-to-fast-forward: true on press, false on release. Wired by the
+    /// emulator screen to the core's frame multiplier.
+    var onFastForward: (Bool) -> Void = { _ in }
 
     var body: some View {
         HStack(spacing: 14) {
             metaButton(label: "SELECT", tint: Color.orange) { onAction(.select($0)) }
             metaButton(label: "START",  tint: Color.green)  { onAction(.start($0)) }
+            metaButton(label: "FF ▶▶",  tint: Color.blue)   { onFastForward($0) }
         }
     }
 

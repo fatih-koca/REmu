@@ -31,6 +31,15 @@ final class AudioEngine {
     private var ringBuffer: RingBuffer!
     private var isRunning = false
 
+    /// Muted during fast-forward. The core produces N× the samples while
+    /// fast-forwarding, which would overrun the ring buffer into a stutter,
+    /// so we simply stop enqueueing: the buffer drains and the render block's
+    /// underrun fade silences cleanly. Unmuting lets it fade back in.
+    private var isMuted = false
+
+    /// Toggled by the emulator controller while the fast-forward button is held.
+    func setMuted(_ muted: Bool) { isMuted = muted }
+
     /// Tracks whether the previous render call ran out of samples. Used to
     /// fade audio in smoothly when the buffer recovers, mirroring the
     /// fade-out we apply when underrun begins. Eliminates the boundary
@@ -59,6 +68,8 @@ final class AudioEngine {
     /// reads the core's native sample rate at this moment.
     func start() {
         guard !isRunning else { return }
+
+        isMuted = false   // never inherit a stale fast-forward mute across games
 
         let native = rn_audio_sample_rate()
         sampleRate = native > 0 ? native : 44_100
@@ -268,7 +279,7 @@ final class AudioEngine {
     /// Called by Libretro on each audio batch (int16 stereo interleaved).
     /// Runs on whatever thread the core's run loop is on (currently main).
     private func enqueue(samples: UnsafePointer<Int16>, frames: Int) {
-        guard isRunning, let ringBuffer else { return }
+        guard isRunning, !isMuted, let ringBuffer else { return }
         ringBuffer.write(samples: samples, count: frames * 2)
     }
 

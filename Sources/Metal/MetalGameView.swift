@@ -9,6 +9,7 @@ struct EmulatorScreenView: View {
 
     @State private var showMenu = false
     @State private var showSaveStates = false
+    @State private var fastForward = false
     @State private var saveMessage: String?
     @State private var coreLoadFailed = false
     // Seeded with the column frame widths from GamepadView; the columns
@@ -30,7 +31,10 @@ struct EmulatorScreenView: View {
             // Bar lives in a SwiftUI subtree completely separate from the
             // MetalViewRepresentable's host view. The outer ZStack respects
             // safe area so the bar naturally sits above the home indicator.
-            StartSelectBar(onAction: handleGamepadAction)
+            StartSelectBar(
+                onAction: handleGamepadAction,
+                onFastForward: { fastForward = $0 }
+            )
                 .padding(.bottom, 8)
                 .allowsHitTesting(!showMenu && !coreLoadFailed)
         }
@@ -89,7 +93,8 @@ struct EmulatorScreenView: View {
                     // while the save-states picker sheet is open, or while a
                     // core-load failure dialog is shown — no point spinning a
                     // half-loaded core in the background.
-                    isPaused: showMenu || coreLoadFailed || showSaveStates
+                    isPaused: showMenu || coreLoadFailed || showSaveStates,
+                    fastForward: fastForward
                 )
                 // The `.ignoresSafeArea()` on the outer ZStack does not
                 // automatically propagate into a UIViewControllerRepresentable
@@ -235,6 +240,9 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
     /// stops the CADisplayLink while paused so retro_run is not called
     /// and the core's clock does not advance behind the menu.
     let isPaused: Bool
+    /// True while the hold-to-fast-forward button is pressed. The controller
+    /// then runs several core frames per display tick (and mutes audio).
+    let fastForward: Bool
 
     func makeUIViewController(context: Context) -> MetalGameViewController {
         let vc = MetalGameViewController()
@@ -248,6 +256,7 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
         // appears; forward every update to the renderer.
         uiViewController.applySafeAreaInsets(safeAreaInsets)
         uiViewController.setPaused(isPaused)
+        uiViewController.setFastForward(fastForward)
     }
 }
 
@@ -259,6 +268,12 @@ final class MetalGameViewController: UIViewController {
     private var mtkView: MTKView!
     private var renderer: MetalRenderer!
     private var displayLink: CADisplayLink?
+
+    /// 1 = normal speed; > 1 while the fast-forward button is held (run N core
+    /// frames per display tick). `suppressVideo` skips the draw on the
+    /// intermediate frames so only the last of each batch is presented.
+    private var fastForwardFrames = 1
+    private var suppressVideo = false
 
     /// Buffered insets from SwiftUI — applied on the renderer if it's already
     /// up, otherwise stashed and replayed at setupMetal() time.
@@ -363,8 +378,9 @@ final class MetalGameViewController: UIViewController {
 
         // CoreBridge calls back on each video frame; we drive MTKView from there.
         CoreBridgeWrapper.shared.onVideoFrame = { [weak self] pixelBuffer in
-            self?.renderer.update(with: pixelBuffer)
-            self?.mtkView.draw()
+            guard let self, !self.suppressVideo else { return }
+            self.renderer.update(with: pixelBuffer)
+            self.mtkView.draw()
         }
 
         // Fiziksel gamepad bağlıysa input'u ortak handler'a yolla
@@ -394,6 +410,19 @@ final class MetalGameViewController: UIViewController {
     }
 
     @objc private func tick() {
+        let frames = fastForwardFrames
+        if frames <= 1 {
+            CoreBridgeWrapper.shared.runFrame()
+            return
+        }
+        // Fast-forward: advance N-1 frames "headless" (video suppressed), then
+        // run the final frame normally so only it is presented. Keeps FF cheap
+        // on the GPU and dodges the present-throttle of drawing every frame.
+        suppressVideo = true
+        for _ in 0..<(frames - 1) {
+            CoreBridgeWrapper.shared.runFrame()
+        }
+        suppressVideo = false
         CoreBridgeWrapper.shared.runFrame()
     }
 
@@ -405,6 +434,15 @@ final class MetalGameViewController: UIViewController {
     /// state restoration: the next tick simply runs the next frame.
     func setPaused(_ paused: Bool) {
         displayLink?.isPaused = paused
+    }
+
+    /// Hold-to-fast-forward. Runs the core a few extra frames per display tick
+    /// and mutes audio — the N× sample flood would otherwise overrun the audio
+    /// ring buffer into a stutter. 3× is a comfortable speed-up that most
+    /// software cores sustain on-device without dropping below real-time.
+    func setFastForward(_ on: Bool) {
+        fastForwardFrames = on ? 3 : 1
+        AudioEngine.shared.setMuted(on)
     }
 }
 
