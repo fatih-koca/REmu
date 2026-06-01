@@ -1,0 +1,17 @@
+=== English ===
+New in 1.2.0 — even more systems!
+
+• Added PC Engine / TurboGrafx-16, Atari 2600, Neo Geo Pocket Color, and WonderSwan support.
+• Just import your own game files and REmu detects the system automatically.
+• Stability and performance improvements.
+
+As always: only use files you legally own. No games or BIOS included.
+
+=== Türkçe ===
+Yeni: 1.2.0 ile daha fazla sistem!
+
+• PC Engine / TurboGrafx-16, Atari 2600, Neo Geo Pocket Color ve WonderSwan desteği eklendi.
+• Kendi oyun dosyalarınızı içe aktarın, REmu sistemi otomatik tanısın.
+• Kararlılık ve performans iyileştirmeleri.
+
+Her zamanki gibi: yalnızca yasal olarak sahip olduğunuz dosyaları kullanın. Oyun veya BIOS içermez.
