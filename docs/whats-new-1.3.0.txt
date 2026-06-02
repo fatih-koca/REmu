@@ -1,0 +1,21 @@
+=== English ===
+New in 1.3.0 — quality-of-life upgrades!
+
+• Multiple save states: keep several save points per game — load, delete or add new ones from the in-game menu.
+• Hold-to-fast-forward: speed through grinding and slow text with the new FF button.
+• Customizable controls: adjust on-screen button size, position and opacity in Settings.
+• Screen options: choose your aspect ratio and toggle pixel smoothing for a sharp retro look.
+• PS1 BIOS setup guide added to Settings.
+
+As always: only use files you legally own. No games or BIOS included.
+
+=== Türkçe ===
+Yeni: 1.3.0 ile kullanım kolaylığı güncellemeleri!
+
+• Çoklu kayıt: her oyunda birden fazla kayıt noktası tut — oyun içi menüden yükle, sil veya yeni ekle.
+• Basılı-tut hızlı ileri sarma: yeni FF butonuyla bekleme ve yavaş bölümleri hızlıca geç.
+• Özelleştirilebilir kontroller: Ayarlar'dan ekran butonlarının boyutunu, konumunu ve saydamlığını ayarla.
+• Ekran seçenekleri: en-boy oranını seç ve keskin retro görünüm için piksel yumuşatmayı aç/kapat.
+• Ayarlar'a PS1 BIOS kurulum rehberi eklendi.
+
+Her zamanki gibi: yalnızca yasal olarak sahip olduğunuz dosyaları kullanın. Oyun veya BIOS içermez.

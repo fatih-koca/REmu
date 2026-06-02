@@ -1,0 +1,144 @@
+/* REmu — Russian (ru) localization. */
+
+/* ContentView — library */
+"Built-in Demo" = "Встроенная демоверсия";
+"Grow the chain, chase the glow" = "Удлиняйте цепочку, гонитесь за светом";
+"No ROM needed · 100% original" = "ROM не нужен · 100% оригинал";
+"Your Library" = "Ваша библиотека";
+"No ROMs imported" = "Нет импортированных ROM";
+"Tap + to import your ROM files" = "Нажмите +, чтобы импортировать файлы ROM";
+"Remove" = "Удалить";
+
+/* SettingsView */
+"Settings" = "Настройки";
+"Done" = "Готово";
+"LIBRARY" = "БИБЛИОТЕКА";
+"LEGAL" = "ПРАВОВАЯ ИНФОРМАЦИЯ";
+"ABOUT" = "О ПРИЛОЖЕНИИ";
+"Auto-download cover art" = "Автозагрузка обложек";
+"Fetches public box art from GitHub when a ROM has no embedded cover. Off by default." = "Загружает общедоступные обложки с GitHub, если у ROM нет встроенной обложки. По умолчанию отключено.";
+"Version" = "Версия";
+"Review the agreement you accepted" = "Просмотрите принятое вами соглашение";
+"What data REmu does and doesn't collect" = "Какие данные REmu собирает, а какие нет";
+"Last updated: April 26, 2026" = "Последнее обновление: April 26, 2026";
+"View Online" = "Посмотреть онлайн";
+"REmu is built to respect your privacy. This document describes what data the app handles and what it does not." = "REmu создан с уважением к вашей конфиденциальности. В этом документе описано, какие данные обрабатывает приложение, а какие нет.";
+"No Personal Data Collected" = "Личные данные не собираются";
+"REmu does not collect, store, or transmit any personally identifiable information. We do not require an account, and we do not log your activity." = "REmu не собирает, не хранит и не передаёт никакую информацию, позволяющую установить вашу личность. Нам не нужна учётная запись, и мы не ведём журнал вашей активности.";
+"Local-Only Storage" = "Хранение только на устройстве";
+"All ROM files, save states, and screenshots remain on your device, inside the app's protected sandbox. They are never uploaded to any server, shared with us, or made available to third parties." = "Все файлы ROM, сохранённые состояния и скриншоты остаются на вашем устройстве, внутри защищённой песочницы приложения. Они никогда не загружаются ни на какой сервер, не передаются нам и не предоставляются третьим лицам.";
+"No Analytics or Tracking" = "Без аналитики и отслеживания";
+"This version of REmu does not include any analytics SDK, tracking pixel, or third-party telemetry. Crash reports, if shared, are handled by Apple's standard system tooling and require your explicit opt-in via iOS Settings." = "Эта версия REmu не содержит никаких SDK аналитики, пикселей отслеживания или сторонней телеметрии. Отчёты о сбоях, если вы решите ими поделиться, обрабатываются стандартными системными средствами Apple и требуют вашего явного согласия в настройках iOS.";
+"Advertising" = "Реклама";
+"The current version of REmu does not display advertisements. If a future release introduces ad-supported features, this policy will be updated and consent will be requested where required (e.g., via App Tracking Transparency)." = "Текущая версия REmu не показывает рекламу. Если в будущей версии появятся функции с рекламной поддержкой, эта политика будет обновлена, а где требуется — будет запрошено согласие (например, через App Tracking Transparency).";
+"External Links" = "Внешние ссылки";
+"The app's tutorial may reference public websites such as itch.io for legal homebrew games. Following an external link takes you to the third party's own privacy environment, which is governed by their policies, not this one." = "В руководстве приложения могут упоминаться общедоступные сайты, например itch.io, с легальными любительскими играми. Переход по внешней ссылке ведёт в среду конфиденциальности третьей стороны, которая регулируется её собственными политиками, а не этой.";
+"Children's Privacy" = "Конфиденциальность детей";
+"REmu is not directed at children under 13 and does not knowingly collect data from anyone. If you believe a child has provided personal data through this app, please contact us so we can confirm there is nothing on our end to remove." = "REmu не предназначен для детей младше 13 лет и не собирает осознанно данные ни от кого. Если вы считаете, что ребёнок предоставил личные данные через это приложение, свяжитесь с нами, чтобы мы могли подтвердить, что у нас нечего удалять.";
+"Contact" = "Контакты";
+"For privacy questions, please contact: fatihkcf@gmail.com" = "По вопросам конфиденциальности обращайтесь: fatihkcf@gmail.com";
+"Changes" = "Изменения";
+"We may revise this policy. The \"Last updated\" date above reflects the most recent revision." = "Мы можем пересматривать эту политику. Указанная выше дата «Последнее обновление» отражает самую последнюю редакцию.";
+
+/* Onboarding / Terms */
+"Welcome to REmu" = "Добро пожаловать в REmu";
+"Terms of Use" = "Условия использования";
+"Privacy Policy" = "Политика конфиденциальности";
+"Please review and accept the terms before continuing." = "Перед продолжением ознакомьтесь с условиями и примите их.";
+"Below are the terms you accepted when first launching REmu." = "Ниже приведены условия, которые вы приняли при первом запуске REmu.";
+"1. No Bundled Games or BIOS" = "1. Никаких встроенных игр или BIOS";
+"REmu does not provide, distribute, or include any commercial game ROMs, BIOS files, or other copyrighted content. The only software bundled with this application is the original Glowchase demo and the emulation framework itself." = "REmu не предоставляет, не распространяет и не включает никаких коммерческих игровых ROM, файлов BIOS или иного защищённого авторским правом контента. Единственное программное обеспечение, входящее в это приложение, — это оригинальная демоверсия Glowchase и сам фреймворк эмуляции.";
+"2. Your Responsibility" = "2. Ваша ответственность";
+"You are solely responsible for the legality of any file you import into this application. By importing a ROM or BIOS, you confirm that (a) you legally own the original game cartridge, disc, or console, and you produced the file by dumping hardware you own, OR (b) the file is free homebrew, public domain, or otherwise covered by a license that permits your use." = "Вы несёте полную ответственность за законность любого файла, который импортируете в это приложение. Импортируя ROM или BIOS, вы подтверждаете, что (a) вы законно владеете оригинальным игровым картриджем, диском или консолью и создали файл, считав его с принадлежащего вам оборудования, ЛИБО (b) файл является бесплатной любительской разработкой, общественным достоянием или иным образом покрывается лицензией, разрешающей такое использование.";
+"3. No ROM Sharing" = "3. Никакого обмена ROM";
+"REmu does not include, link to, or facilitate access to any ROM download service. Downloading or distributing ROMs of games you do not own is illegal in most jurisdictions and constitutes a violation of these terms and your local copyright law." = "REmu не содержит ссылок и не предоставляет доступ к каким-либо сервисам загрузки ROM. Загрузка или распространение ROM игр, которыми вы не владеете, незаконна в большинстве юрисдикций и является нарушением этих условий и местного законодательства об авторском праве.";
+"4. Privacy" = "4. Конфиденциальность";
+"REmu stores all save states and imported files locally on your device. No game data, save states, or imported ROMs are uploaded to any server, and the developer has no access to them." = "REmu хранит все сохранённые состояния и импортированные файлы локально на вашем устройстве. Никакие игровые данные, сохранённые состояния или импортированные ROM не загружаются ни на какой сервер, и разработчик не имеет к ним доступа.";
+"5. No Warranty" = "5. Без гарантий";
+"REmu is provided \"as-is\" without warranty of any kind, express or implied. The developer is not liable for any damages, data loss, or legal consequences arising from your use of this software or any content you choose to load into it." = "REmu предоставляется «как есть», без каких-либо гарантий, явных или подразумеваемых. Разработчик не несёт ответственности за любой ущерб, потерю данных или правовые последствия, возникающие из-за использования вами этого программного обеспечения или любого контента, который вы решите в него загрузить.";
+"6. Trademarks & Affiliation" = "6. Товарные знаки и аффилированность";
+"REmu is an independent project and is not affiliated with, endorsed by, or sponsored by Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation, or any other console manufacturer. All trademarks, product names, console designs, and logos are the property of their respective owners. References to console identifiers within the application are made for technical interoperability only." = "REmu — это независимый проект, не связанный с, не одобренный и не спонсируемый Nintendo Co., Ltd., Sony Interactive Entertainment Inc., Microsoft Corporation или любым другим производителем консолей. Все товарные знаки, названия продуктов, дизайны консолей и логотипы являются собственностью их соответствующих владельцев. Упоминания идентификаторов консолей в приложении сделаны исключительно в целях технической совместимости.";
+"I have read and agree to the terms above" = "Я прочитал(а) и согласен(на) с приведёнными выше условиями";
+"Continue" = "Продолжить";
+"Close" = "Закрыть";
+
+/* How to Use */
+"How to Use" = "Как пользоваться";
+"Legal Notice" = "Правовое уведомление";
+"REmu is an emulation platform. It does not include any game software or BIOS files. You are solely responsible for ensuring you have the legal right to use any files you load into this app." = "REmu — это платформа эмуляции. Она не включает никакого игрового программного обеспечения или файлов BIOS. Вы несёте полную ответственность за наличие у вас законного права использовать любые файлы, которые вы загружаете в это приложение.";
+"Step %lld" = "Шаг %lld";
+"Obtain ROMs Legally" = "Получайте ROM легально";
+"Dump your own physical cartridges or discs using a dedicated dumper device. You must own the original media. Do not download ROMs from the internet — sharing or distributing copyrighted game files is illegal." = "Считывайте собственные физические картриджи или диски с помощью специального устройства для дампа. Вы должны владеть оригинальным носителем. Не загружайте ROM из интернета — обмен защищёнными авторским правом игровыми файлами и их распространение незаконны.";
+"Free Legal Alternatives" = "Бесплатные легальные альтернативы";
+"If you don't have a dumper, many systems have free homebrew and public-domain games you can use legally — for example, GB Studio releases on itch.io, NES homebrew (Nebs 'n Debs, Witch n Wiz), or Genesis SGDK demos. Always read the license before importing a file." = "Если у вас нет устройства для дампа, для многих систем есть бесплатные любительские игры и игры из общественного достояния, которые можно использовать легально — например, релизы GB Studio на itch.io, любительские игры для NES (Nebs 'n Debs, Witch n Wiz) или демоверсии SGDK для Genesis. Всегда читайте лицензию перед импортом файла.";
+"Import Your ROM" = "Импортируйте свой ROM";
+"Tap the + button on the Library screen. Select your ROM file from the Files app. Supported formats: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (Game Boy family), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1)." = "Нажмите кнопку + на экране библиотеки. Выберите файл ROM в приложении Files. Поддерживаемые форматы: .nes (NES), .smc/.sfc (SNES), .gb/.gbc/.gba (семейство Game Boy), .md/.gen/.smd (Genesis), .sms (Master System), .gg (Game Gear), .bin/.cue (PS1).";
+"Place BIOS Files" = "Разместите файлы BIOS";
+"Some systems require a BIOS dump from your own console. Place BIOS files in the /System folder inside the app's Documents directory (Files → REmu → System). You must dump the BIOS yourself from hardware you own." = "Некоторым системам требуется дамп BIOS с вашей собственной консоли. Поместите файлы BIOS в папку /System внутри каталога Documents приложения (Files → REmu → System). Вы должны сами считать BIOS с принадлежащего вам оборудования.";
+"Launch & Play" = "Запуск и игра";
+"Tap any ROM card to start. Use the on-screen controller, or connect a MFi/Bluetooth gamepad. Use the menu (⋮) to save/load states or return to the library." = "Нажмите на любую карточку ROM, чтобы начать. Используйте экранный контроллер или подключите геймпад MFi/Bluetooth. Используйте меню (⋮) для сохранения/загрузки состояний или возврата в библиотеку.";
+"Save States" = "Сохранённые состояния";
+"Tap the Save button during gameplay to create a snapshot. Load it anytime via Quick Load. States are stored locally in /SaveStates and are never uploaded anywhere." = "Нажмите кнопку «Сохранить» во время игры, чтобы создать снимок. Загрузите его в любой момент через быструю загрузку. Состояния хранятся локально в /SaveStates и никогда никуда не загружаются.";
+
+/* Glowchase demo */
+"Swipe\nor\nD-Pad" = "Свайп\nили\nкрестовина";
+"Paused" = "Пауза";
+"Resume" = "Продолжить";
+"Restart" = "Заново";
+"Exit" = "Выход";
+"Game Over" = "Игра окончена";
+"Score: %lld" = "Счёт: %lld";
+"Guide the coil — chase the glow" = "Управляйте змейкой — гонитесь за светом";
+"Play Again" = "Играть снова";
+"Start" = "Старт";
+"BUILT-IN" = "ВСТРОЕННАЯ";
+"SCORE" = "СЧЁТ";
+"BEST" = "РЕКОРД";
+
+/* In-game menu */
+"Save State" = "Сохранить состояние";
+"Load State" = "Загрузить состояние";
+"Exit to Library" = "Выйти в библиотеку";
+"Couldn't start this game" = "Не удалось запустить эту игру";
+"%@ couldn't be started. This system may be unsupported on this device, or a required BIOS file is missing — PlayStation games need a BIOS file you provide yourself. The built-in Glowchase demo always works." = "Не удалось запустить «%@». Возможно, эта система не поддерживается на этом устройстве, или отсутствует необходимый файл BIOS — играм PlayStation нужен файл BIOS, который вы предоставляете сами. Встроенная демоверсия Glowchase работает всегда.";
+"Back to Library" = "Назад в библиотеку";
+"Save failed" = "Не удалось сохранить";
+"State saved" = "Состояние сохранено";
+"Save error" = "Ошибка сохранения";
+"No save found" = "Сохранение не найдено";
+"State loaded" = "Состояние загружено";
+"Load error" = "Ошибка загрузки";
+"New Save" = "Новое сохранение";
+"No save states yet" = "Пока нет сохранённых состояний";
+"Tap + to save your current progress. You can keep as many save points as you like." = "Нажмите +, чтобы сохранить текущий прогресс. Вы можете хранить сколько угодно точек сохранения.";
+"Save %lld" = "Сохранение %lld";
+
+/* Controls settings */
+"CONTROLS" = "УПРАВЛЕНИЕ";
+"Button Size" = "Размер кнопок";
+"Vertical Position" = "Положение по вертикали";
+"Opacity" = "Непрозрачность";
+"Reset to Default" = "Сбросить по умолчанию";
+
+/* Emulation settings */
+"EMULATION" = "ЭМУЛЯЦИЯ";
+"PS1 BIOS Setup" = "Настройка BIOS для PS1";
+"How to add a PlayStation BIOS" = "Как добавить BIOS для PlayStation";
+"PlayStation games need a BIOS file dumped from your own console. REmu does not include one. Other systems (NES, SNES, Game Boy, Genesis, etc.) do not need a BIOS." = "Играм PlayStation нужен файл BIOS, считанный с вашей собственной консоли. REmu его не содержит. Другим системам (NES, SNES, Game Boy, Genesis и т. д.) BIOS не требуется.";
+"Dump your own BIOS" = "Считайте свой собственный BIOS";
+"You must legally own a PlayStation console and dump its BIOS yourself. The file is commonly named scph5501.bin (US), scph5500.bin (Japan) or scph5502.bin (Europe). Do not download BIOS files from the internet." = "Вы должны законно владеть консолью PlayStation и сами считать её BIOS. Файл обычно называется scph5501.bin (США), scph5500.bin (Япония) или scph5502.bin (Европа). Не загружайте файлы BIOS из интернета.";
+"Open Files → REmu → System" = "Откройте Files → REmu → System";
+"In the Files app, go to On My iPhone → REmu → System. REmu creates this folder for you automatically." = "В приложении Files перейдите в On My iPhone → REmu → System. REmu создаёт эту папку автоматически.";
+"Copy the BIOS file in" = "Скопируйте файл BIOS внутрь";
+"Place the .bin BIOS file into that System folder. You can keep more than one regional BIOS there at the same time." = "Поместите файл BIOS .bin в эту папку System. Вы можете хранить там одновременно несколько региональных версий BIOS.";
+"Import a game and play" = "Импортируйте игру и играйте";
+"Add a PlayStation disc (.bin/.cue, .pbp or .chd) from the library, then tap it to launch. PS1 is experimental — speed varies by game and device." = "Добавьте диск PlayStation (.bin/.cue, .pbp или .chd) из библиотеки, затем нажмите на него для запуска. PS1 находится в экспериментальной стадии — скорость зависит от игры и устройства.";
+
+/* Screen settings */
+"SCREEN" = "ЭКРАН";
+"Aspect Ratio" = "Соотношение сторон";
+"Fit" = "Вписать";
+"Fill" = "Заполнить";
+"Integer" = "Целочисленный";
+"Smooth Pixels" = "Сглаживание пикселей";
+"Turn off for a sharp, pixel-perfect retro look." = "Отключите для чёткого ретро-вида с точными пикселями.";

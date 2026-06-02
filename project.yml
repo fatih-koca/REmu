@@ -45,14 +45,22 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: REmu Retro
-        CFBundleShortVersionString: "1.2.0"
-        CFBundleVersion: "9"
-        # English + Turkish UI. Declaring both here makes the App Store list
-        # the app as available in both languages and pins the base language.
+        CFBundleShortVersionString: "1.3.0"
+        CFBundleVersion: "10"
+        # 10-language UI. Declaring them here makes the App Store list the app
+        # as available in each language and pins the base (development) language.
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations:
           - en
           - tr
+          - es
+          - de
+          - fr
+          - ja
+          - zh-Hans
+          - hi
+          - pt-BR
+          - ru
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft
