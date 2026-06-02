@@ -13,6 +13,7 @@ struct SettingsView: View {
 
     @State private var showingTerms = false
     @State private var showingPrivacy = false
+    @State private var showBIOSGuide = false
 
     /// Default OFF on a fresh install. The lookup hits a public GitHub
     /// repo (libretro-thumbnails) and fetches a public-domain image keyed
@@ -41,6 +42,7 @@ struct SettingsView: View {
                         librarySection
                         controlsSection
                         screenSection
+                        emulationSection
                         legalSection
                         aboutSection
                         Spacer(minLength: 20)
@@ -63,6 +65,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingPrivacy) {
                 PrivacyPolicyView()
+            }
+            .sheet(isPresented: $showBIOSGuide) {
+                BIOSGuideView()
             }
         }
         .preferredColorScheme(.dark)
@@ -178,6 +183,21 @@ struct SettingsView: View {
                 }
             }
             .padding(14)
+            .background(rowGroupBackground)
+        }
+    }
+
+    private var emulationSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(icon: "cpu", label: "EMULATION", tint: .purple)
+
+            VStack(spacing: 0) {
+                settingRow(
+                    icon: "memorychip",
+                    title: "PS1 BIOS Setup",
+                    subtitle: "How to add a PlayStation BIOS"
+                ) { showBIOSGuide = true }
+            }
             .background(rowGroupBackground)
         }
     }

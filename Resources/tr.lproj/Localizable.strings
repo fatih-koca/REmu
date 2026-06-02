@@ -123,6 +123,20 @@
 "Opacity" = "Saydamlık";
 "Reset to Default" = "Varsayılana Sıfırla";
 
+/* SettingsView — emülasyon / BIOSGuideView */
+"EMULATION" = "EMÜLASYON";
+"PS1 BIOS Setup" = "PS1 BIOS Kurulumu";
+"How to add a PlayStation BIOS" = "PlayStation BIOS'u nasıl eklenir";
+"PlayStation games need a BIOS file dumped from your own console. REmu does not include one. Other systems (NES, SNES, Game Boy, Genesis, etc.) do not need a BIOS." = "PlayStation oyunları, kendi konsolundan kopyalanmış bir BIOS dosyası gerektirir. REmu bunu içermez. Diğer sistemler (NES, SNES, Game Boy, Genesis vb.) BIOS gerektirmez.";
+"Dump your own BIOS" = "Kendi BIOS'unu kopyala";
+"You must legally own a PlayStation console and dump its BIOS yourself. The file is commonly named scph5501.bin (US), scph5500.bin (Japan) or scph5502.bin (Europe). Do not download BIOS files from the internet." = "Yasal olarak bir PlayStation konsoluna sahip olmalı ve BIOS'unu kendin kopyalamalısın. Dosya genellikle scph5501.bin (ABD), scph5500.bin (Japonya) veya scph5502.bin (Avrupa) olarak adlandırılır. BIOS dosyalarını internetten indirme.";
+"Open Files → REmu → System" = "Dosyalar → REmu → System'i aç";
+"In the Files app, go to On My iPhone → REmu → System. REmu creates this folder for you automatically." = "Dosyalar uygulamasında iPhone'um → REmu → System'e git. REmu bu klasörü senin için otomatik oluşturur.";
+"Copy the BIOS file in" = "BIOS dosyasını içine kopyala";
+"Place the .bin BIOS file into that System folder. You can keep more than one regional BIOS there at the same time." = ".bin BIOS dosyasını o System klasörüne koy. Aynı anda birden fazla bölgesel BIOS tutabilirsin.";
+"Import a game and play" = "Oyun ekle ve oyna";
+"Add a PlayStation disc (.bin/.cue, .pbp or .chd) from the library, then tap it to launch. PS1 is experimental — speed varies by game and device." = "Kütüphaneden bir PlayStation diski (.bin/.cue, .pbp veya .chd) ekle, sonra başlatmak için dokun. PS1 deneyseldir — hız oyuna ve cihaza göre değişir.";
+
 /* SettingsView — ekran seçenekleri */
 "SCREEN" = "EKRAN";
 "Aspect Ratio" = "En-Boy Oranı";

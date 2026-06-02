@@ -123,6 +123,20 @@
 "Opacity" = "Opacity";
 "Reset to Default" = "Reset to Default";
 
+/* SettingsView — emulation / BIOSGuideView */
+"EMULATION" = "EMULATION";
+"PS1 BIOS Setup" = "PS1 BIOS Setup";
+"How to add a PlayStation BIOS" = "How to add a PlayStation BIOS";
+"PlayStation games need a BIOS file dumped from your own console. REmu does not include one. Other systems (NES, SNES, Game Boy, Genesis, etc.) do not need a BIOS." = "PlayStation games need a BIOS file dumped from your own console. REmu does not include one. Other systems (NES, SNES, Game Boy, Genesis, etc.) do not need a BIOS.";
+"Dump your own BIOS" = "Dump your own BIOS";
+"You must legally own a PlayStation console and dump its BIOS yourself. The file is commonly named scph5501.bin (US), scph5500.bin (Japan) or scph5502.bin (Europe). Do not download BIOS files from the internet." = "You must legally own a PlayStation console and dump its BIOS yourself. The file is commonly named scph5501.bin (US), scph5500.bin (Japan) or scph5502.bin (Europe). Do not download BIOS files from the internet.";
+"Open Files → REmu → System" = "Open Files → REmu → System";
+"In the Files app, go to On My iPhone → REmu → System. REmu creates this folder for you automatically." = "In the Files app, go to On My iPhone → REmu → System. REmu creates this folder for you automatically.";
+"Copy the BIOS file in" = "Copy the BIOS file in";
+"Place the .bin BIOS file into that System folder. You can keep more than one regional BIOS there at the same time." = "Place the .bin BIOS file into that System folder. You can keep more than one regional BIOS there at the same time.";
+"Import a game and play" = "Import a game and play";
+"Add a PlayStation disc (.bin/.cue, .pbp or .chd) from the library, then tap it to launch. PS1 is experimental — speed varies by game and device." = "Add a PlayStation disc (.bin/.cue, .pbp or .chd) from the library, then tap it to launch. PS1 is experimental — speed varies by game and device.";
+
 /* SettingsView — screen options */
 "SCREEN" = "SCREEN";
 "Aspect Ratio" = "Aspect Ratio";
