@@ -12,23 +12,14 @@ struct EmulatorScreenView: View {
     @State private var fastForward = false
     @State private var saveMessage: String?
     @State private var coreLoadFailed = false
-    // Seeded with the column frame widths from GamepadView; the columns
-    // overwrite these once their analog-stick-aware visual extents are
-    // measured. Kept in @State so device rotation re-flows the renderer.
-    @State private var leftColWidth: CGFloat = 106
-    @State private var rightColWidth: CGFloat = 110
-
-    // User control-customization (set in Settings → Controls).
-    @AppStorage("remu.controls.scale")   private var controlScale: Double = 1.0
-    @AppStorage("remu.controls.voffset") private var controlVOffset: Double = 0
-    @AppStorage("remu.controls.opacity") private var controlOpacity: Double = 1.0
-
-    // Screen options (Settings → Screen).
-    @AppStorage("remu.screen.aspect") private var screenAspect: Int = 0
-    @AppStorage("remu.screen.smooth") private var screenSmooth: Bool = true
+    // User-customized control + screen layouts, edited from Settings via the
+    // PUBG-style editors. Loaded on appear so edits made just before launching
+    // a game apply immediately.
+    @State private var controlLayout: ControlLayout = ControlLayoutStore.load()
+    @State private var screenLayout: ScreenLayout = ScreenLayoutStore.load()
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             // Game + controls handles its own safe-area logic via the
             // GeometryReader inside `gameAndControls`. We must NOT put
             // .ignoresSafeArea() on the outer ZStack — doing so makes the
@@ -36,17 +27,6 @@ struct EmulatorScreenView: View {
             // collapses the column horizontal padding and shoves all the
             // buttons against the rounded-corner edge of the device.
             gameAndControls
-
-            // Bar lives in a SwiftUI subtree completely separate from the
-            // MetalViewRepresentable's host view. The outer ZStack respects
-            // safe area so the bar naturally sits above the home indicator.
-            StartSelectBar(
-                onAction: handleGamepadAction,
-                onFastForward: { fastForward = $0 }
-            )
-                .padding(.bottom, 8)
-                .opacity(controlOpacity)
-                .allowsHitTesting(!showMenu && !coreLoadFailed)
         }
         // Menu rendered at body level so it centers within the SAFE AREA
         // (i.e., visually centered between top and home indicator). Inside
@@ -58,6 +38,11 @@ struct EmulatorScreenView: View {
         .overlay(menuOverlay)
         .sheet(isPresented: $showSaveStates) {
             SaveStatesView(romID: rom.id, onMessage: { showToast($0) })
+        }
+        .onAppear {
+            // Pick up any layout edits made from Settings before launching.
+            controlLayout = ControlLayoutStore.load()
+            screenLayout  = ScreenLayoutStore.load()
         }
     }
 
@@ -93,20 +78,15 @@ struct EmulatorScreenView: View {
                 // indicator on every device size.
                 MetalViewRepresentable(
                     rom: rom,
-                    safeAreaInsets: EdgeInsets(
-                        top:      0,
-                        leading:  inset.leading  + hPad + leftColWidth  * CGFloat(controlScale),
-                        bottom:   0,
-                        trailing: inset.trailing + hPad + rightColWidth * CGFloat(controlScale)
-                    ),
+                    safeAreaInsets: rendererInsets(geo: geo),
                     // Freeze the core's clock while the in-game menu is up,
                     // while the save-states picker sheet is open, or while a
                     // core-load failure dialog is shown — no point spinning a
                     // half-loaded core in the background.
                     isPaused: showMenu || coreLoadFailed || showSaveStates,
                     fastForward: fastForward,
-                    aspectMode: screenAspect,
-                    smoothing: screenSmooth
+                    aspectMode: screenLayout.aspectMode,
+                    smoothing: screenLayout.smooth
                 )
                 // The `.ignoresSafeArea()` on the outer ZStack does not
                 // automatically propagate into a UIViewControllerRepresentable
@@ -131,25 +111,17 @@ struct EmulatorScreenView: View {
                 .padding(.top,      max(inset.top,    4))
                 .padding(.bottom,   max(inset.bottom, 4))
 
-                // Left + Right control columns. Scaled from the outer edge so
-                // they grow inward into the canvas inset we reserved above;
-                // the width preferences are measured pre-scale so the inset
-                // math stays correct.
-                HStack(spacing: 0) {
-                    LeftControlColumn(screenSize: geo.size, onAction: handleGamepadAction)
-                        .scaleEffect(CGFloat(controlScale), anchor: .leading)
-                    Spacer(minLength: 0)
-                    RightControlColumn(screenSize: geo.size, onAction: handleGamepadAction)
-                        .scaleEffect(CGFloat(controlScale), anchor: .trailing)
-                }
-                .offset(y: CGFloat(controlVOffset))
-                .opacity(controlOpacity)
-                .padding(.leading,  inset.leading  + hPad)
-                .padding(.trailing, inset.trailing + hPad)
-                .padding(.top,      max(inset.top,    4) + 56)
-                .padding(.bottom,   max(inset.bottom, 4) + 40)
-                .onPreferenceChange(LeftColumnVisualWidthKey.self)  { leftColWidth  = $0 }
-                .onPreferenceChange(RightColumnVisualWidthKey.self) { rightColWidth = $0 }
+                // Touch controls — freely positioned per the user's saved
+                // layout (Settings -> Console Layout). ignoresSafeArea puts the
+                // overlay in full-window coordinates so it lines up with the
+                // Metal canvas and the editor preview.
+                GameControlsOverlay(
+                    layout: controlLayout,
+                    onAction: handleGamepadAction,
+                    onFastForward: { fastForward = $0 }
+                )
+                .ignoresSafeArea()
+                .allowsHitTesting(!showMenu && !coreLoadFailed)
 
                 // Toast
                 if let msg = saveMessage {
@@ -233,6 +205,23 @@ struct EmulatorScreenView: View {
             )
             .padding(.horizontal, 24)
         }
+    }
+
+    /// Letterbox insets (points, full-window relative) for the Metal canvas,
+    /// derived from the user's screen-layout rect. The MTKView spans the entire
+    /// window, so the rect is expressed relative to the full window: geo.size is
+    /// inset by the safe area, so we add it back to recover the true window size.
+    private func rendererInsets(geo: GeometryProxy) -> EdgeInsets {
+        let safe = geo.safeAreaInsets
+        let fullW = geo.size.width  + safe.leading + safe.trailing
+        let fullH = geo.size.height + safe.top     + safe.bottom
+        let r = screenLayout
+        return EdgeInsets(
+            top:      max(r.y * fullH, 0),
+            leading:  max(r.x * fullW, 0),
+            bottom:   max((1 - (r.y + r.height)) * fullH, 0),
+            trailing: max((1 - (r.x + r.width))  * fullW, 0)
+        )
     }
 
     private func handleGamepadAction(_ action: GamepadAction) {

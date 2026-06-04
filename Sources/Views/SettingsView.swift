@@ -11,6 +11,12 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
+    /// Invoked when the user taps a layout-editor row. ContentView dismisses
+    /// this sheet and presents the matching full-screen editor (so the editor
+    /// covers the whole screen, exactly like gameplay).
+    var onEditScreen: () -> Void = {}
+    var onEditControls: () -> Void = {}
+
     @State private var showingTerms = false
     @State private var showingPrivacy = false
     @State private var showBIOSGuide = false
@@ -22,16 +28,6 @@ struct SettingsView: View {
     @AppStorage("remu.library.autoDownloadCovers")
     private var autoDownloadCovers: Bool = false
 
-    // On-screen control customization. Read by the emulator screen
-    // (EmulatorScreenView) to scale, shift and fade the touch controls.
-    @AppStorage("remu.controls.scale")   private var controlScale: Double = 1.0
-    @AppStorage("remu.controls.voffset") private var controlVOffset: Double = 0
-    @AppStorage("remu.controls.opacity") private var controlOpacity: Double = 1.0
-
-    // Screen rendering options, read by the Metal renderer.
-    @AppStorage("remu.screen.aspect") private var screenAspect: Int = 0
-    @AppStorage("remu.screen.smooth") private var screenSmooth: Bool = true
-
     var body: some View {
         NavigationView {
             ZStack {
@@ -40,8 +36,7 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(spacing: 24) {
                         librarySection
-                        controlsSection
-                        screenSection
+                        displaySection
                         emulationSection
                         legalSection
                         aboutSection
@@ -102,87 +97,27 @@ struct SettingsView: View {
         }
     }
 
-    private var controlsSection: some View {
+    private var displaySection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionHeader(icon: "gamecontroller", label: "CONTROLS", tint: .green)
+            sectionHeader(icon: "slider.horizontal.below.rectangle", label: "DISPLAY & CONTROLS", tint: .green)
 
-            VStack(spacing: 16) {
-                sliderRow(title: "Button Size", value: $controlScale, range: 0.7...1.3)
-                Divider().background(Color.white.opacity(0.08))
-                sliderRow(title: "Vertical Position", value: $controlVOffset, range: -60...60)
-                Divider().background(Color.white.opacity(0.08))
-                sliderRow(title: "Opacity", value: $controlOpacity, range: 0.3...1.0)
-                Divider().background(Color.white.opacity(0.08))
-                Button(action: resetControls) {
-                    Text("Reset to Default")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.orange)
-                        .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+            VStack(spacing: 0) {
+                settingRow(
+                    icon: "rectangle.on.rectangle",
+                    title: "Screen Layout",
+                    subtitle: "Move and resize the game screen"
+                ) { onEditScreen() }
+
+                Divider()
+                    .background(Color.white.opacity(0.08))
+                    .padding(.leading, 56)
+
+                settingRow(
+                    icon: "gamecontroller",
+                    title: "Console Layout",
+                    subtitle: "Drag, resize and arrange each control"
+                ) { onEditControls() }
             }
-            .padding(14)
-            .background(rowGroupBackground)
-        }
-    }
-
-    private func sliderRow(
-        title: LocalizedStringKey,
-        value: Binding<Double>,
-        range: ClosedRange<Double>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.subheadline)
-                .foregroundColor(.white)
-            Slider(value: value, in: range)
-                .tint(.green)
-        }
-    }
-
-    private func resetControls() {
-        controlScale = 1.0
-        controlVOffset = 0
-        controlOpacity = 1.0
-    }
-
-    private var screenSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            sectionHeader(icon: "rectangle.on.rectangle", label: "SCREEN", tint: .purple)
-
-            VStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Aspect Ratio")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                    Picker("Aspect Ratio", selection: $screenAspect) {
-                        Text("Fit").tag(0)
-                        Text("Fill").tag(1)
-                        Text("Integer").tag(2)
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                Divider().background(Color.white.opacity(0.08))
-
-                HStack(spacing: 14) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Smooth Pixels")
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                        Text("Turn off for a sharp, pixel-perfect retro look.")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer()
-                    Toggle("", isOn: $screenSmooth)
-                        .labelsHidden()
-                        .tint(.purple)
-                }
-            }
-            .padding(14)
             .background(rowGroupBackground)
         }
     }

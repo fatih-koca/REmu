@@ -3,6 +3,12 @@ import UniformTypeIdentifiers
 
 // MARK: - Root Navigation
 
+// Which full-screen layout editor to present after the Settings sheet closes.
+private enum LayoutEditor: String, Identifiable {
+    case controls, screen
+    var id: String { rawValue }
+}
+
 struct ContentView: View {
     @StateObject private var library = ROMLibrary.shared
     @State private var selectedROM: ROMEntry?
@@ -11,6 +17,10 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showingGame = false
     @State private var showingCoilpede = false
+    // Layout editors: SettingsView requests one, the sheet dismisses, then the
+    // requested editor is presented full-screen via `.fullScreenCover` below.
+    @State private var pendingEditor: LayoutEditor?
+    @State private var activeEditor: LayoutEditor?
 
     var body: some View {
         ZStack {
@@ -40,8 +50,24 @@ struct ContentView: View {
         .sheet(isPresented: $showTutorial) {
             TutorialView()
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
+        .sheet(isPresented: $showSettings, onDismiss: {
+            if let pending = pendingEditor {
+                pendingEditor = nil
+                activeEditor = pending
+            }
+        }) {
+            SettingsView(
+                onEditScreen:   { pendingEditor = .screen;   showSettings = false },
+                onEditControls: { pendingEditor = .controls; showSettings = false }
+            )
+        }
+        .fullScreenCover(item: $activeEditor) { editor in
+            switch editor {
+            case .controls:
+                ControlLayoutEditorView { activeEditor = nil }
+            case .screen:
+                ScreenLayoutEditorView { activeEditor = nil }
+            }
         }
         .onAppear { library.backfillMissingCovers() }
         .onReceive(
