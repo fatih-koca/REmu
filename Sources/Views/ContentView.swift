@@ -36,8 +36,18 @@ struct ContentView: View {
                 }
                 .transition(.opacity)
             } else {
-                libraryView
-                    .transition(.opacity)
+                XMBHomeView(
+                    library: library,
+                    onPlayROM:      { rom in
+                        library.markPlayed(rom)
+                        selectedROM = rom; showingGame = true
+                    },
+                    onPlayDemo:     { showingCoilpede = true },
+                    onOpenTutorial: { showTutorial = true },
+                    onOpenSettings: { showSettings = true },
+                    onImport:       { showDocumentPicker = true }
+                )
+                .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: showingGame)
@@ -75,259 +85,11 @@ struct ContentView: View {
         ) { note in
             // Posted by REmuApp's .onOpenURL after a successful import.
             guard let rom = note.object as? ROMEntry else { return }
+            library.markPlayed(rom)
             selectedROM = rom
             showingCoilpede = false
             showingGame = true
         }
-    }
-
-    // MARK: Library
-
-    private var libraryView: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 16) {
-                Text("REmu")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                Spacer()
-
-                Button { showTutorial = true } label: {
-                    Image(systemName: "questionmark.circle")
-                        .foregroundColor(.gray)
-                        .font(.title2)
-                }
-
-                Button { showSettings = true } label: {
-                    Image(systemName: "gearshape")
-                        .foregroundColor(.gray)
-                        .font(.title2)
-                }
-
-                Button { showDocumentPicker = true } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.title2)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-
-            ScrollView {
-                builtInDemosSection
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
-
-                if library.roms.isEmpty {
-                    emptyStateView
-                        .padding(.top, 40)
-                } else {
-                    romGridContents
-                }
-            }
-        }
-    }
-
-    // MARK: Built-in demos
-
-    private var builtInDemosSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "sparkles")
-                    .foregroundColor(.orange)
-                    .font(.caption)
-                Text("Built-in Demo")
-                    .font(.caption).bold()
-                    .foregroundColor(.orange)
-            }
-
-            Button {
-                showingCoilpede = true
-            } label: {
-                HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.green.opacity(0.45), Color.orange.opacity(0.35)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 62, height: 62)
-                        Text("🪱")
-                            .font(.system(size: 32))
-                    }
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Glowchase")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Text("Grow the chain, chase the glow")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        Text("No ROM needed · 100% original")
-                            .font(.caption2)
-                            .foregroundColor(.orange.opacity(0.8))
-                    }
-                    Spacer()
-                    Image(systemName: "play.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.orange)
-                }
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white.opacity(0.06))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.orange.opacity(0.3), lineWidth: 1))
-                )
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var romGridContents: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "gamecontroller.fill")
-                    .foregroundColor(.blue)
-                    .font(.caption)
-                Text("Your Library")
-                    .font(.caption).bold()
-                    .foregroundColor(.blue)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 130, maximum: 170), spacing: 12)],
-                spacing: 14
-            ) {
-                ForEach(library.roms) { rom in
-                    ROMCard(rom: rom) {
-                        selectedROM = rom
-                        showingGame = true
-                    } onDelete: {
-                        library.remove(rom)
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-        }
-    }
-
-    private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "gamecontroller")
-                .font(.system(size: 60))
-                .foregroundColor(.gray.opacity(0.5))
-            Text("No ROMs imported")
-                .font(.title3)
-                .foregroundColor(.gray)
-            Text("Tap + to import your ROM files")
-                .font(.subheadline)
-                .foregroundColor(.gray.opacity(0.7))
-            Spacer()
-        }
-    }
-
-    // ROM import logic now lives on ROMLibrary so it can be shared
-    // between the document picker and the onOpenURL handler in REmuApp.
-}
-
-// MARK: - ROM Card
-
-struct ROMCard: View {
-    let rom: ROMEntry
-    let onLaunch: () -> Void
-    let onDelete: () -> Void
-
-    var body: some View {
-        Button(action: onLaunch) {
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.05))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 100)
-                    .overlay(
-                        Group {
-                            if let cover = coverImage {
-                                Image(uiImage: cover)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } else {
-                                Image(systemName: rom.console.systemIcon)
-                                    .font(.system(size: 36))
-                                    .foregroundColor(.blue.opacity(0.7))
-                            }
-                        }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                // Reserve 2 lines of vertical space so a 1-line title and a
-                // 2-line title produce the same card height — otherwise the
-                // grid rows look ragged when long names are mixed with short
-                // ones. `iOS 16+`'s `.lineLimit(2, reservesSpace: true)` is
-                // the cleanest way; the iOS-15 fallback uses a fixed-height
-                // frame to lock the same vertical footprint.
-                Group {
-                    if #available(iOS 16.0, *) {
-                        Text(rom.title)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(2, reservesSpace: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    } else {
-                        Text(rom.title)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(2)
-                            .frame(maxWidth: .infinity, minHeight: 32,
-                                   alignment: .topLeading)
-                    }
-                }
-
-                HStack {
-                    Text(rom.console.displayName)
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-
-                    Spacer()
-
-                    if rom.hasSaveState {
-                        Image(systemName: "bookmark.fill")
-                            .font(.caption2)
-                            .foregroundColor(.green)
-                    }
-                }
-            }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color.white.opacity(0.07))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-        .contextMenu {
-            Button(role: .destructive) { onDelete() } label: {
-                Label("Remove", systemImage: "trash")
-            }
-        }
-    }
-
-    private var coverImage: UIImage? {
-        guard let url = rom.coverURL,
-              let data = try? Data(contentsOf: url) else { return nil }
-        return UIImage(data: data)
     }
 }
 

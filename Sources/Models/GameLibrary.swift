@@ -167,6 +167,13 @@ final class ROMLibrary: ObservableObject {
         save()
     }
 
+    /// Stamps "last played" when a game is launched (shown on the home screen).
+    func markPlayed(_ rom: ROMEntry) {
+        guard let i = roms.firstIndex(where: { $0.id == rom.id }) else { return }
+        roms[i].lastPlayed = Date()
+        save()
+    }
+
     static func detectConsole(for url: URL) -> ConsoleSystem? {
         let ext = url.pathExtension.lowercased()
         return ConsoleSystem.allCases.first { $0.fileExtensions.contains(ext) }
