@@ -766,13 +766,21 @@ private struct GamesCarouselView: View {
             .onEnded { v in
                 let count = section.games.count
                 if abs(v.translation.width) < 8 && abs(v.translation.height) < 8 {
-                    // Tap: launch the card under the finger (if it hit one).
+                    // Tap: like the console spine, tapping a non-focused card
+                    // SELECTS it (snaps it to the focal spot); only tapping the
+                    // already-focused card launches the game.
                     let rel = (v.location.x - focalX) / gameSlot
                     let i = gameIndex + Int(rel.rounded())
                     let withinCardBand = abs(v.location.y - centerY) <= cardBase * 0.78
                     if i >= 0 && i < count && withinCardBand {
-                        dragX = 0
-                        onPlay(section.games[i])
+                        if i == gameIndex {
+                            dragX = 0
+                            onPlay(section.games[i])
+                        } else {
+                            withAnimation(.interpolatingSpring(stiffness: 240, damping: 28)) {
+                                gameIndex = i; dragX = 0
+                            }
+                        }
                         return
                     }
                     withAnimation(.interpolatingSpring(stiffness: 240, damping: 28)) { dragX = 0 }
