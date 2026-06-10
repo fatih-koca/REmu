@@ -17,6 +17,8 @@ struct EmulatorScreenView: View {
     // a game apply immediately.
     @State private var controlLayout: ControlLayout = ControlLayoutStore.load()
     @State private var screenLayout: ScreenLayout = ScreenLayoutStore.load()
+    /// Live measured FPS from the display link (the old chip was a hard-coded "60").
+    @State private var measuredFPS: Double = 0
 
     var body: some View {
         ZStack {
@@ -43,6 +45,9 @@ struct EmulatorScreenView: View {
             // Pick up any layout edits made from Settings before launching.
             controlLayout = ControlLayoutStore.load()
             screenLayout  = ScreenLayoutStore.load()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .remuFPSUpdate)) { note in
+            if let fps = note.object as? Double { measuredFPS = fps }
         }
     }
 
@@ -98,10 +103,12 @@ struct EmulatorScreenView: View {
                 // Top strip only — bottom ad strip removed for now,
                 // can be reintroduced when the AdMob SDK is wired in.
                 VStack(spacing: 0) {
+                    // Clean strip: just pause + a LIVE fps chip (no title /
+                    // console label — they wasted space over the game).
                     GameInfoTopStrip(
-                        title: rom.title,
-                        subtitle: rom.console.displayName,
-                        stats: [("FPS", "60")],
+                        stats: [("FPS", measuredFPS > 0
+                            ? String(format: "%.1f", locale: .current, measuredFPS)
+                            : "—")],
                         onPause: { showMenu.toggle() }
                     )
                     Spacer(minLength: 0)
@@ -288,6 +295,12 @@ final class MetalGameViewController: UIViewController {
     private var fastForwardFrames = 1
     private var suppressVideo = false
 
+    /// Real FPS measurement: presented frames counted over ~1s windows and
+    /// published to SwiftUI. One presented frame per tick (fast-forward's
+    /// extra core frames are headless, so they don't inflate the number).
+    private var fpsFrameCount = 0
+    private var fpsWindowStart: CFTimeInterval = CACurrentMediaTime()
+
     /// Buffered insets from SwiftUI — applied on the renderer if it's already
     /// up, otherwise stashed and replayed at setupMetal() time.
     private var pendingInsets: EdgeInsets = EdgeInsets()
@@ -432,17 +445,31 @@ final class MetalGameViewController: UIViewController {
         let frames = fastForwardFrames
         if frames <= 1 {
             CoreBridgeWrapper.shared.runFrame()
-            return
-        }
-        // Fast-forward: advance N-1 frames "headless" (video suppressed), then
-        // run the final frame normally so only it is presented. Keeps FF cheap
-        // on the GPU and dodges the present-throttle of drawing every frame.
-        suppressVideo = true
-        for _ in 0..<(frames - 1) {
+        } else {
+            // Fast-forward: advance N-1 frames "headless" (video suppressed),
+            // then run the final frame normally so only it is presented. Keeps
+            // FF cheap on the GPU and dodges the present-throttle of drawing
+            // every frame.
+            suppressVideo = true
+            for _ in 0..<(frames - 1) {
+                CoreBridgeWrapper.shared.runFrame()
+            }
+            suppressVideo = false
             CoreBridgeWrapper.shared.runFrame()
         }
-        suppressVideo = false
-        CoreBridgeWrapper.shared.runFrame()
+
+        // Live FPS: publish the measured presented-frame rate ~once a second.
+        // Sent as a Double so the chip can show one decimal (59.7, 60.1…) —
+        // detailed enough to tell NTSC pacing from a real slowdown.
+        fpsFrameCount += 1
+        let now = CACurrentMediaTime()
+        let elapsed = now - fpsWindowStart
+        if elapsed >= 1.0 {
+            let fps = Double(fpsFrameCount) / elapsed
+            fpsFrameCount = 0
+            fpsWindowStart = now
+            NotificationCenter.default.post(name: .remuFPSUpdate, object: fps)
+        }
     }
 
     /// Freeze (or resume) the core's clock. Pausing the CADisplayLink

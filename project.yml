@@ -88,6 +88,11 @@ targets:
         # and is honest: REmu only uses Apple's HTTPS for the optional
         # cover-art lookup, which falls under Apple's standard exemption.
         ITSAppUsesNonExemptEncryption: false
+        # Allows CADisplayLink to actually reach 120 Hz on ProMotion panels.
+        # The emulator still paces the core at its native rate (~60), so game
+        # speed is unaffected — this just unlocks panel headroom (and faster
+        # cores in the future).
+        CADisableMinimumFrameDurationOnPhone: true
         # Hide the status bar app-wide. The game canvas is full-bleed in
         # landscape and on iPad the system status bar drew device locale
         # text (Turkish day names etc.) over the top of our UI. Hiding it

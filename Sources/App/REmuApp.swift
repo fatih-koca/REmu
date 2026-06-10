@@ -72,6 +72,9 @@ extension Notification.Name {
     /// Posted by CoreBridge when a libretro core fails to load (most likely
     /// because the matching .dylib isn't bundled with the app yet).
     static let remuCoreLoadFailed  = Notification.Name("remu.coreLoadFailed")
+    /// Posted ~once per second by the emulator's display link with the real
+    /// measured FPS (Int) so the in-game strip shows a live value.
+    static let remuFPSUpdate       = Notification.Name("remu.fpsUpdate")
 }
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
