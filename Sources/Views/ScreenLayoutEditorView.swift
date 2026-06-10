@@ -187,7 +187,7 @@ struct ScreenLayoutEditorView: View {
         .padding(.bottom, 16)
     }
 
-    private func sliderRow(title: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
+    private func sliderRow(title: LocalizedStringKey, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         HStack(spacing: 12) {
             Text(title)
                 .font(.subheadline)

@@ -142,3 +142,48 @@
 "Integer" = "Целочисленный";
 "Smooth Pixels" = "Сглаживание пикселей";
 "Turn off for a sharp, pixel-perfect retro look." = "Отключите для чёткого ретро-вида с точными пикселями.";
+
+/* XMB Home — console spine & games carousel (1.4.0) */
+"Demo Games" = "Демо-игры";
+"DEMO · BUILT-IN" = "ДЕМО · ВСТРОЕННАЯ";
+"%@ · NO GAMES YET" = "%@ · ПОКА НЕТ ИГР";
+"%@ · 1 GAME" = "%@ · 1 ИГРА";
+"%@ · %d GAMES" = "%@ · ИГР: %d";
+"NO GAMES · SUPPORTED" = "НЕТ ИГР · ПОДДЕРЖИВАЮТСЯ";
+"PLAY" = "ИГРАТЬ";
+"Last played %@" = "Последний запуск: %@";
+"Never played yet" = "Ещё ни разу не запускалась";
+"Built-in demo · no ROM needed" = "Встроенная демоверсия · ROM не нужен";
+"No games yet" = "Пока нет игр";
+"Tap + to import a game for this system." = "Нажмите +, чтобы импортировать игру для этой системы.";
+"Import" = "Импортировать";
+
+/* SettingsView — display & controls rows (1.4.0) */
+"DISPLAY & CONTROLS" = "ЭКРАН И УПРАВЛЕНИЕ";
+"Screen Layout" = "Расположение экрана";
+"Move and resize the game screen" = "Перемещайте игровой экран и меняйте его размер";
+"Console Layout" = "Раскладка управления";
+"Drag, resize and arrange each control" = "Перетаскивайте, масштабируйте и расставляйте каждый элемент управления";
+
+/* Layout editors (1.4.0) */
+"Reset" = "Сбросить";
+"Drag a control to move · tap to adjust" = "Перетащите элемент, чтобы переместить · нажмите, чтобы настроить";
+"Drag / pinch the game screen" = "Перетаскивайте игровой экран / меняйте размер щипком";
+"GAME SCREEN" = "ИГРОВОЙ ЭКРАН";
+"drag to move · pinch to resize" = "перетащите, чтобы переместить · щипком меняйте размер";
+"Show" = "Показать";
+"Hide" = "Скрыть";
+"Size" = "Размер";
+"Width" = "Ширина";
+"Height" = "Высота";
+
+/* On-screen control names (1.4.0) */
+"D-Pad" = "Крестовина";
+"Left Stick" = "Левый стик";
+"Right Stick" = "Правый стик";
+"Triangle (△)" = "Треугольник (△)";
+"Cross (✕)" = "Крестик (✕)";
+"Square (□)" = "Квадрат (□)";
+"Circle (○)" = "Круг (○)";
+"Select" = "Select";
+"Fast-Forward" = "Ускорение";

@@ -124,3 +124,48 @@
 "Integer" = "पूर्णांक";
 "Smooth Pixels" = "चिकने पिक्सेल";
 "Turn off for a sharp, pixel-perfect retro look." = "तीखे, पिक्सेल-परफ़ेक्ट रेट्रो लुक के लिए बंद करें।";
+
+/* XMB Home — console spine & games carousel (1.4.0) */
+"Demo Games" = "डेमो गेम्स";
+"DEMO · BUILT-IN" = "डेमो · अंतर्निहित";
+"%@ · NO GAMES YET" = "%@ · अभी कोई गेम नहीं";
+"%@ · 1 GAME" = "%@ · 1 गेम";
+"%@ · %d GAMES" = "%@ · %d गेम्स";
+"NO GAMES · SUPPORTED" = "कोई गेम नहीं · समर्थित";
+"PLAY" = "खेलें";
+"Last played %@" = "अंतिम बार %@ खेला गया";
+"Never played yet" = "अभी तक कभी नहीं खेला गया";
+"Built-in demo · no ROM needed" = "अंतर्निहित डेमो · कोई ROM ज़रूरी नहीं";
+"No games yet" = "अभी कोई गेम नहीं";
+"Tap + to import a game for this system." = "इस सिस्टम के लिए गेम आयात करने हेतु + पर टैप करें।";
+"Import" = "आयात करें";
+
+/* SettingsView — display & controls rows (1.4.0) */
+"DISPLAY & CONTROLS" = "डिस्प्ले और नियंत्रण";
+"Screen Layout" = "स्क्रीन लेआउट";
+"Move and resize the game screen" = "गेम स्क्रीन को हिलाएँ और उसका आकार बदलें";
+"Console Layout" = "कंसोल लेआउट";
+"Drag, resize and arrange each control" = "हर नियंत्रण को ड्रैग करें, उसका आकार बदलें और व्यवस्थित करें";
+
+/* Layout editors (1.4.0) */
+"Reset" = "रीसेट करें";
+"Drag a control to move · tap to adjust" = "हिलाने के लिए नियंत्रण को ड्रैग करें · समायोजित करने के लिए टैप करें";
+"Drag / pinch the game screen" = "गेम स्क्रीन को ड्रैग / पिंच करें";
+"GAME SCREEN" = "गेम स्क्रीन";
+"drag to move · pinch to resize" = "हिलाने के लिए ड्रैग करें · आकार बदलने के लिए पिंच करें";
+"Show" = "दिखाएँ";
+"Hide" = "छिपाएँ";
+"Size" = "आकार";
+"Width" = "चौड़ाई";
+"Height" = "ऊँचाई";
+
+/* On-screen control names (1.4.0) */
+"D-Pad" = "D-Pad";
+"Left Stick" = "बाईं स्टिक";
+"Right Stick" = "दाईं स्टिक";
+"Triangle (△)" = "ट्रायंगल (△)";
+"Cross (✕)" = "क्रॉस (✕)";
+"Square (□)" = "स्क्वायर (□)";
+"Circle (○)" = "सर्कल (○)";
+"Select" = "Select";
+"Fast-Forward" = "फ़ास्ट-फ़ॉरवर्ड";

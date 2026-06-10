@@ -229,7 +229,9 @@ struct XMBHomeView: View {
 
     private func computeSections() -> [HomeSection] {
         var out: [HomeSection] = [
-            HomeSection(id: "demo", title: "Demo Games", badgeSymbol: "sparkles",
+            HomeSection(id: "demo",
+                        title: NSLocalizedString("Demo Games", comment: "Home: pinned demo section title"),
+                        badgeSymbol: "sparkles",
                         accent: Color(hex: 0x3ddd86),
                         gradient: [Color(hex: 0x3ddd86), Color(hex: 0xf5a623)],
                         games: [HomeGame(id: "glowchase", title: "Glowchase", rom: nil)],
@@ -419,9 +421,16 @@ struct XMBHomeView: View {
     }
 
     private func gamesHeader(_ sec: HomeSection) -> String {
-        if sec.console == nil { return "DEMO · BUILT-IN" }
-        if sec.count == 0 { return "\(sec.title) · NO GAMES YET" }
-        return "\(sec.title) · \(sec.count) GAME\(sec.count == 1 ? "" : "S")"
+        if sec.console == nil {
+            return NSLocalizedString("DEMO · BUILT-IN", comment: "Games header: demo section")
+        }
+        if sec.count == 0 {
+            return String(format: NSLocalizedString("%@ · NO GAMES YET", comment: "Games header: empty console"), sec.title)
+        }
+        if sec.count == 1 {
+            return String(format: NSLocalizedString("%@ · 1 GAME", comment: "Games header: one game"), sec.title)
+        }
+        return String(format: NSLocalizedString("%@ · %d GAMES", comment: "Games header: game count"), sec.title, sec.count)
     }
 
     private func emptyGames(_ sec: HomeSection) -> some View {
@@ -745,11 +754,14 @@ private struct GamesCarouselView: View {
     }
 
     private func subtitle(for game: HomeGame) -> String {
-        if game.isDemo { return "Built-in demo · no ROM needed" }
-        if let date = game.rom?.lastPlayed {
-            return "Last played \(Self.relFormatter.localizedString(for: date, relativeTo: Date()))"
+        if game.isDemo {
+            return NSLocalizedString("Built-in demo · no ROM needed", comment: "Detail bar: demo subtitle")
         }
-        return "Never played yet"
+        if let date = game.rom?.lastPlayed {
+            return String(format: NSLocalizedString("Last played %@", comment: "Detail bar: relative last-played date"),
+                          Self.relFormatter.localizedString(for: date, relativeTo: Date()))
+        }
+        return NSLocalizedString("Never played yet", comment: "Detail bar: game never launched")
     }
 
     // Single gesture for drag + tap (see ConsoleSpineView.drag for why):

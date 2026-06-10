@@ -145,3 +145,48 @@
 "Integer" = "Tam Kat";
 "Smooth Pixels" = "Pikselleri Yumuşat";
 "Turn off for a sharp, pixel-perfect retro look." = "Keskin, piksel-net retro görünüm için kapat.";
+
+/* XMB Home — console spine & games carousel (1.4.0) */
+"Demo Games" = "Demo Oyunlar";
+"DEMO · BUILT-IN" = "DEMO · DAHİLİ";
+"%@ · NO GAMES YET" = "%@ · HENÜZ OYUN YOK";
+"%@ · 1 GAME" = "%@ · 1 OYUN";
+"%@ · %d GAMES" = "%@ · %d OYUN";
+"NO GAMES · SUPPORTED" = "OYUN YOK · DESTEKLENİYOR";
+"PLAY" = "OYNA";
+"Last played %@" = "En son %@ oynandı";
+"Never played yet" = "Henüz hiç oynanmadı";
+"Built-in demo · no ROM needed" = "Dahili demo · ROM gerekmez";
+"No games yet" = "Henüz oyun yok";
+"Tap + to import a game for this system." = "Bu sisteme oyun eklemek için + simgesine dokun.";
+"Import" = "İçe Aktar";
+
+/* SettingsView — display & controls rows (1.4.0) */
+"DISPLAY & CONTROLS" = "GÖRÜNTÜ VE KONTROLLER";
+"Screen Layout" = "Ekran Düzeni";
+"Move and resize the game screen" = "Oyun ekranını taşı ve yeniden boyutlandır";
+"Console Layout" = "Konsol Düzeni";
+"Drag, resize and arrange each control" = "Her kontrolü sürükle, boyutlandır ve yerleştir";
+
+/* Layout editors (1.4.0) */
+"Reset" = "Sıfırla";
+"Drag a control to move · tap to adjust" = "Taşımak için kontrolü sürükle · ayarlamak için dokun";
+"Drag / pinch the game screen" = "Oyun ekranını sürükle / kıstırarak boyutlandır";
+"GAME SCREEN" = "OYUN EKRANI";
+"drag to move · pinch to resize" = "taşımak için sürükle · boyutlandırmak için kıstır";
+"Show" = "Göster";
+"Hide" = "Gizle";
+"Size" = "Boyut";
+"Width" = "Genişlik";
+"Height" = "Yükseklik";
+
+/* On-screen control names (1.4.0) */
+"D-Pad" = "D-Pad";
+"Left Stick" = "Sol Analog";
+"Right Stick" = "Sağ Analog";
+"Triangle (△)" = "Üçgen (△)";
+"Cross (✕)" = "Çarpı (✕)";
+"Square (□)" = "Kare (□)";
+"Circle (○)" = "Daire (○)";
+"Select" = "Select";
+"Fast-Forward" = "İleri Sar";

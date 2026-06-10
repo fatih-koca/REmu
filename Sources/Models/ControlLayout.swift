@@ -17,24 +17,26 @@ enum ControlKind: String, CaseIterable, Identifiable, Codable {
 
     var id: String { rawValue }
 
-    /// Human label shown in the editor's selection panel.
+    /// Human label shown in the editor's selection panel (localized).
     var displayName: String {
+        let key: String
         switch self {
-        case .dpad:         return "D-Pad"
-        case .leftStick:    return "Left Stick"
-        case .rightStick:   return "Right Stick"
-        case .faceTriangle: return "Triangle (△)"
-        case .faceCross:    return "Cross (✕)"
-        case .faceSquare:   return "Square (□)"
-        case .faceCircle:   return "Circle (○)"
-        case .l1:           return "L1"
-        case .l2:           return "L2"
-        case .r1:           return "R1"
-        case .r2:           return "R2"
-        case .start:        return "Start"
-        case .select:       return "Select"
-        case .fastForward:  return "Fast-Forward"
+        case .dpad:         key = "D-Pad"
+        case .leftStick:    key = "Left Stick"
+        case .rightStick:   key = "Right Stick"
+        case .faceTriangle: key = "Triangle (△)"
+        case .faceCross:    key = "Cross (✕)"
+        case .faceSquare:   key = "Square (□)"
+        case .faceCircle:   key = "Circle (○)"
+        case .l1:           key = "L1"
+        case .l2:           key = "L2"
+        case .r1:           key = "R1"
+        case .r2:           key = "R2"
+        case .start:        key = "Start"
+        case .select:       key = "Select"
+        case .fastForward:  key = "Fast-Forward"
         }
+        return NSLocalizedString(key, comment: "On-screen control name")
     }
 }
 

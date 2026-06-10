@@ -124,3 +124,48 @@
 "Integer" = "整数倍";
 "Smooth Pixels" = "平滑像素";
 "Turn off for a sharp, pixel-perfect retro look." = "关闭以获得锐利、像素完美的复古观感。";
+
+/* XMB Home — console spine & games carousel (1.4.0) */
+"Demo Games" = "演示游戏";
+"DEMO · BUILT-IN" = "演示 · 内置";
+"%@ · NO GAMES YET" = "%@ · 暂无游戏";
+"%@ · 1 GAME" = "%@ · 1 款游戏";
+"%@ · %d GAMES" = "%@ · %d 款游戏";
+"NO GAMES · SUPPORTED" = "暂无游戏 · 已支持";
+"PLAY" = "开始游戏";
+"Last played %@" = "上次游玩：%@";
+"Never played yet" = "尚未玩过";
+"Built-in demo · no ROM needed" = "内置演示 · 无需 ROM";
+"No games yet" = "暂无游戏";
+"Tap + to import a game for this system." = "点按 + 为此系统导入游戏。";
+"Import" = "导入";
+
+/* SettingsView — display & controls rows (1.4.0) */
+"DISPLAY & CONTROLS" = "显示与控制";
+"Screen Layout" = "屏幕布局";
+"Move and resize the game screen" = "移动并调整游戏画面的大小";
+"Console Layout" = "控制器布局";
+"Drag, resize and arrange each control" = "拖动、缩放并排列每个控件";
+
+/* Layout editors (1.4.0) */
+"Reset" = "重置";
+"Drag a control to move · tap to adjust" = "拖动控件以移动 · 点按以调整";
+"Drag / pinch the game screen" = "拖动 / 捏合游戏画面";
+"GAME SCREEN" = "游戏画面";
+"drag to move · pinch to resize" = "拖动移动 · 捏合缩放";
+"Show" = "显示";
+"Hide" = "隐藏";
+"Size" = "大小";
+"Width" = "宽度";
+"Height" = "高度";
+
+/* On-screen control names (1.4.0) */
+"D-Pad" = "方向键";
+"Left Stick" = "左摇杆";
+"Right Stick" = "右摇杆";
+"Triangle (△)" = "三角键 (△)";
+"Cross (✕)" = "叉键 (✕)";
+"Square (□)" = "方块键 (□)";
+"Circle (○)" = "圆圈键 (○)";
+"Select" = "Select";
+"Fast-Forward" = "快进";

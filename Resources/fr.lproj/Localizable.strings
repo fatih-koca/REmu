@@ -124,3 +124,48 @@
 "Integer" = "Entier";
 "Smooth Pixels" = "Lissage des pixels";
 "Turn off for a sharp, pixel-perfect retro look." = "Désactivez pour un rendu rétro net et précis au pixel près.";
+
+/* XMB Home — console spine & games carousel (1.4.0) */
+"Demo Games" = "Jeux démo";
+"DEMO · BUILT-IN" = "DÉMO · INTÉGRÉE";
+"%@ · NO GAMES YET" = "%@ · ENCORE AUCUN JEU";
+"%@ · 1 GAME" = "%@ · 1 JEU";
+"%@ · %d GAMES" = "%@ · %d JEUX";
+"NO GAMES · SUPPORTED" = "AUCUN JEU · PRIS EN CHARGE";
+"PLAY" = "JOUER";
+"Last played %@" = "Dernière partie %@";
+"Never played yet" = "Encore jamais joué";
+"Built-in demo · no ROM needed" = "Démo intégrée · aucune ROM requise";
+"No games yet" = "Aucun jeu pour le moment";
+"Tap + to import a game for this system." = "Touchez + pour importer un jeu pour ce système.";
+"Import" = "Importer";
+
+/* SettingsView — display & controls rows (1.4.0) */
+"DISPLAY & CONTROLS" = "AFFICHAGE ET COMMANDES";
+"Screen Layout" = "Disposition de l'écran";
+"Move and resize the game screen" = "Déplacez et redimensionnez l'écran de jeu";
+"Console Layout" = "Disposition de la manette";
+"Drag, resize and arrange each control" = "Faites glisser, redimensionnez et organisez chaque commande";
+
+/* Layout editors (1.4.0) */
+"Reset" = "Réinitialiser";
+"Drag a control to move · tap to adjust" = "Faites glisser une commande pour la déplacer · touchez pour ajuster";
+"Drag / pinch the game screen" = "Faites glisser / pincez l'écran de jeu";
+"GAME SCREEN" = "ÉCRAN DE JEU";
+"drag to move · pinch to resize" = "faites glisser pour déplacer · pincez pour redimensionner";
+"Show" = "Afficher";
+"Hide" = "Masquer";
+"Size" = "Taille";
+"Width" = "Largeur";
+"Height" = "Hauteur";
+
+/* On-screen control names (1.4.0) */
+"D-Pad" = "D-Pad";
+"Left Stick" = "Stick gauche";
+"Right Stick" = "Stick droit";
+"Triangle (△)" = "Triangle (△)";
+"Cross (✕)" = "Croix (✕)";
+"Square (□)" = "Carré (□)";
+"Circle (○)" = "Rond (○)";
+"Select" = "Select";
+"Fast-Forward" = "Avance rapide";

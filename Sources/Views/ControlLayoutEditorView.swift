@@ -152,7 +152,7 @@ struct ControlLayoutEditorView: View {
                 Spacer()
                 Button(action: { layout[kind].hidden.toggle(); ControlLayoutStore.save(layout) }) {
                     Label(
-                        layout[kind].hidden ? "Show" : "Hide",
+                        LocalizedStringKey(layout[kind].hidden ? "Show" : "Hide"),
                         systemImage: layout[kind].hidden ? "eye" : "eye.slash"
                     )
                     .font(.subheadline.weight(.medium))
@@ -190,7 +190,7 @@ struct ControlLayoutEditorView: View {
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 
-    private func sliderRow(title: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
+    private func sliderRow(title: LocalizedStringKey, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         HStack(spacing: 12) {
             Text(title)
                 .font(.subheadline)
