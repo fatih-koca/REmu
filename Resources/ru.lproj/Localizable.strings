@@ -201,3 +201,8 @@
 "All beacons lit!" = "Все маяки зажжены!";
 
 "LVL" = "УРОВЕНЬ";
+
+/* Force-update gate (1.4.0) */
+"Update required" = "Требуется обновление";
+"A newer version of REmu is required to continue. Please update from the App Store." = "Для продолжения требуется более новая версия REmu. Обновите приложение в App Store.";
+"Update" = "Обновить";

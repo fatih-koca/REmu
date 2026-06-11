@@ -183,3 +183,8 @@
 "All beacons lit!" = "सभी बीकन जल उठे!";
 
 "LVL" = "स्तर";
+
+/* Force-update gate (1.4.0) */
+"Update required" = "अपडेट आवश्यक है";
+"A newer version of REmu is required to continue. Please update from the App Store." = "जारी रखने के लिए REmu के नए संस्करण की आवश्यकता है। कृपया App Store से अपडेट करें।";
+"Update" = "अपडेट करें";

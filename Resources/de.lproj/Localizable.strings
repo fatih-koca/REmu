@@ -183,3 +183,8 @@
 "All beacons lit!" = "Alle Leuchtfeuer entzündet!";
 
 "LVL" = "LEVEL";
+
+/* Force-update gate (1.4.0) */
+"Update required" = "Update erforderlich";
+"A newer version of REmu is required to continue. Please update from the App Store." = "Um fortzufahren wird eine neuere Version von REmu benötigt. Bitte über den App Store aktualisieren.";
+"Update" = "Aktualisieren";

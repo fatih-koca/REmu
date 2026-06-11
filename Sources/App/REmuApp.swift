@@ -35,6 +35,7 @@ struct RetroNexusApp: App {
 private struct RootView: View {
     @AppStorage("remu.eula.accepted.v1") private var hasAcceptedEULA = false
     @State private var showingSplash = true
+    @ObservedObject private var updateGate = UpdateGate.shared
 
     var body: some View {
         ZStack {
@@ -47,6 +48,14 @@ private struct RootView: View {
                     }
                 }
                 .transition(.opacity)
+            }
+
+            // Force-update wall (config-driven; see UpdateGate). Sits above
+            // everything except the splash.
+            if updateGate.updateRequired {
+                UpdateRequiredView()
+                    .transition(.opacity)
+                    .zIndex(9)
             }
 
             // Splash sits on top of everything so the user sees it first;
