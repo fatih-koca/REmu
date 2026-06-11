@@ -169,3 +169,17 @@
 "Circle (○)" = "○ボタン";
 "Select" = "セレクト";
 "Fast-Forward" = "早送り";
+
+/* Glowbreak demo (1.4.0) */
+"LIVES" = "ライフ";
+"LEVEL %d" = "レベル %d";
+"TAP TO LAUNCH" = "タップで発射";
+"Smash the neon bricks" = "ネオンブロックを打ち砕け";
+"drag to move · tap to launch" = "ドラッグで移動 · タップで発射";
+
+/* Lumo demo (1.4.0) */
+"JUMP" = "ジャンプ";
+"Light the beacons" = "ビーコンに火を灯せ";
+"All beacons lit!" = "すべてのビーコンが灯った！";
+
+"LVL" = "レベル";

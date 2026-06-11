@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>REmu Retro</string>
+	<string>REmu</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

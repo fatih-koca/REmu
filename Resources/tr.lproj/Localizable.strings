@@ -190,3 +190,17 @@
 "Circle (○)" = "Daire (○)";
 "Select" = "Select";
 "Fast-Forward" = "İleri Sar";
+
+/* Glowbreak demo (1.4.0) */
+"LIVES" = "CAN";
+"LEVEL %d" = "SEVİYE %d";
+"TAP TO LAUNCH" = "BAŞLATMAK İÇİN DOKUN";
+"Smash the neon bricks" = "Neon tuğlaları parçala";
+"drag to move · tap to launch" = "sürükleyerek hareket et · dokunarak başlat";
+
+/* Lumo demo (1.4.0) */
+"JUMP" = "ZIPLA";
+"Light the beacons" = "Fenerleri yak";
+"All beacons lit!" = "Tüm fenerler yandı!";
+
+"LVL" = "BÖLÜM";

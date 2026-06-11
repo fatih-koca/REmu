@@ -169,3 +169,17 @@
 "Circle (○)" = "圆圈键 (○)";
 "Select" = "Select";
 "Fast-Forward" = "快进";
+
+/* Glowbreak demo (1.4.0) */
+"LIVES" = "生命";
+"LEVEL %d" = "第 %d 关";
+"TAP TO LAUNCH" = "点按发射";
+"Smash the neon bricks" = "击碎霓虹砖块";
+"drag to move · tap to launch" = "拖动移动 · 点按发射";
+
+/* Lumo demo (1.4.0) */
+"JUMP" = "跳跃";
+"Light the beacons" = "点亮信标";
+"All beacons lit!" = "所有信标已点亮！";
+
+"LVL" = "关卡";

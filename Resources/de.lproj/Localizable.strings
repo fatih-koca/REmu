@@ -169,3 +169,17 @@
 "Circle (○)" = "Kreis (○)";
 "Select" = "Select";
 "Fast-Forward" = "Vorspulen";
+
+/* Glowbreak demo (1.4.0) */
+"LIVES" = "LEBEN";
+"LEVEL %d" = "LEVEL %d";
+"TAP TO LAUNCH" = "ZUM STARTEN TIPPEN";
+"Smash the neon bricks" = "Zertrümmere die Neon-Steine";
+"drag to move · tap to launch" = "ziehen zum Bewegen · tippen zum Starten";
+
+/* Lumo demo (1.4.0) */
+"JUMP" = "SPRUNG";
+"Light the beacons" = "Entzünde die Leuchtfeuer";
+"All beacons lit!" = "Alle Leuchtfeuer entzündet!";
+
+"LVL" = "LEVEL";

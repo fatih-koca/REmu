@@ -64,6 +64,7 @@ private struct HomeGame: Identifiable {
     let id: String
     let title: String
     let rom: ROMEntry?          // nil == built-in demo
+    var demoSymbol: String? = nil   // SF symbol for a demo's card art
     var isDemo: Bool { rom == nil }
 }
 
@@ -186,7 +187,7 @@ private struct CoverImage<Placeholder: View>: View {
 struct XMBHomeView: View {
     @ObservedObject var library: ROMLibrary
     var onPlayROM:     (ROMEntry) -> Void
-    var onPlayDemo:    () -> Void
+    var onPlayDemo:    (String) -> Void      // demo id ("glowchase", "glowbreak"…)
     var onOpenTutorial:() -> Void
     var onOpenSettings:() -> Void
     var onImport:      () -> Void
@@ -234,7 +235,14 @@ struct XMBHomeView: View {
                         badgeSymbol: "sparkles",
                         accent: Color(hex: 0x3ddd86),
                         gradient: [Color(hex: 0x3ddd86), Color(hex: 0xf5a623)],
-                        games: [HomeGame(id: "glowchase", title: "Glowchase", rom: nil)],
+                        games: [
+                            HomeGame(id: "glowchase", title: "Glowchase", rom: nil,
+                                     demoSymbol: "gamecontroller.fill"),
+                            HomeGame(id: "glowbreak", title: "Glowbreak", rom: nil,
+                                     demoSymbol: "square.grid.3x3.topleft.filled"),
+                            HomeGame(id: "lumo", title: "Lumo", rom: nil,
+                                     demoSymbol: "sparkle"),
+                        ],
                         console: nil)
         ]
         let grouped = Dictionary(grouping: library.roms, by: { $0.console })
@@ -406,7 +414,7 @@ struct XMBHomeView: View {
                     height: geo.size.height,
                     trailingPad: insets.right + 26,
                     onPlay: { g in
-                        if g.isDemo { onPlayDemo() }
+                        if g.isDemo { onPlayDemo(g.id) }
                         else if let rom = g.rom { onPlayROM(rom) }
                     }
                 )
@@ -817,7 +825,7 @@ private struct GamesCarouselView: View {
                             .interpolation(.none).resizable().scaledToFit()
                             .padding(cardBase * 0.22)
                     } else {
-                        Image(systemName: "gamecontroller.fill")
+                        Image(systemName: game.demoSymbol ?? "gamecontroller.fill")
                             .font(.system(size: 34, weight: .semibold))
                             .foregroundColor(.white.opacity(0.92))
                     }

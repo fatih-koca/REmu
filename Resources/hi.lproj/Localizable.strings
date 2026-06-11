@@ -169,3 +169,17 @@
 "Circle (○)" = "सर्कल (○)";
 "Select" = "Select";
 "Fast-Forward" = "फ़ास्ट-फ़ॉरवर्ड";
+
+/* Glowbreak demo (1.4.0) */
+"LIVES" = "जीवन";
+"LEVEL %d" = "स्तर %d";
+"TAP TO LAUNCH" = "लॉन्च करने के लिए टैप करें";
+"Smash the neon bricks" = "नियॉन ईंटें तोड़ें";
+"drag to move · tap to launch" = "खिसकाने के लिए ड्रैग करें · लॉन्च के लिए टैप करें";
+
+/* Lumo demo (1.4.0) */
+"JUMP" = "कूदो";
+"Light the beacons" = "बीकन जलाओ";
+"All beacons lit!" = "सभी बीकन जल उठे!";
+
+"LVL" = "स्तर";

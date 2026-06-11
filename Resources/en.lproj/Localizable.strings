@@ -190,3 +190,17 @@
 "Circle (○)" = "Circle (○)";
 "Select" = "Select";
 "Fast-Forward" = "Fast-Forward";
+
+/* Glowbreak demo (1.4.0) */
+"LIVES" = "LIVES";
+"LEVEL %d" = "LEVEL %d";
+"TAP TO LAUNCH" = "TAP TO LAUNCH";
+"Smash the neon bricks" = "Smash the neon bricks";
+"drag to move · tap to launch" = "drag to move · tap to launch";
+
+/* Lumo demo (1.4.0) */
+"JUMP" = "JUMP";
+"Light the beacons" = "Light the beacons";
+"All beacons lit!" = "All beacons lit!";
+
+"LVL" = "LVL";

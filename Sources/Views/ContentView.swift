@@ -9,6 +9,12 @@ private enum LayoutEditor: String, Identifiable {
     var id: String { rawValue }
 }
 
+// Built-in demo games (ids match XMBHomeView's demo HomeGame ids).
+private enum ActiveDemo: String, Identifiable {
+    case glowchase, glowbreak, lumo
+    var id: String { rawValue }
+}
+
 struct ContentView: View {
     @StateObject private var library = ROMLibrary.shared
     @State private var selectedROM: ROMEntry?
@@ -16,7 +22,7 @@ struct ContentView: View {
     @State private var showTutorial = false
     @State private var showSettings = false
     @State private var showingGame = false
-    @State private var showingCoilpede = false
+    @State private var activeDemo: ActiveDemo?
     // Layout editors: SettingsView requests one, the sheet dismisses, then the
     // requested editor is presented full-screen via `.fullScreenCover` below.
     @State private var pendingEditor: LayoutEditor?
@@ -26,9 +32,15 @@ struct ContentView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            if showingCoilpede {
-                CoilpedeView { showingCoilpede = false }
-                    .transition(.opacity)
+            if let demo = activeDemo {
+                Group {
+                    switch demo {
+                    case .glowchase: CoilpedeView { activeDemo = nil }
+                    case .glowbreak: GlowbreakView { activeDemo = nil }
+                    case .lumo:      LumoView { activeDemo = nil }
+                    }
+                }
+                .transition(.opacity)
             } else if showingGame, let rom = selectedROM {
                 EmulatorScreenView(rom: rom) {
                     showingGame = false
@@ -42,7 +54,7 @@ struct ContentView: View {
                         library.markPlayed(rom)
                         selectedROM = rom; showingGame = true
                     },
-                    onPlayDemo:     { showingCoilpede = true },
+                    onPlayDemo:     { id in activeDemo = ActiveDemo(rawValue: id) ?? .glowchase },
                     onOpenTutorial: { showTutorial = true },
                     onOpenSettings: { showSettings = true },
                     onImport:       { showDocumentPicker = true }
@@ -51,7 +63,7 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: showingGame)
-        .animation(.easeInOut(duration: 0.25), value: showingCoilpede)
+        .animation(.easeInOut(duration: 0.25), value: activeDemo)
         .sheet(isPresented: $showDocumentPicker) {
             ROMDocumentPicker { urls in
                 urls.forEach { _ = library.importROM(from: $0) }
@@ -87,7 +99,7 @@ struct ContentView: View {
             guard let rom = note.object as? ROMEntry else { return }
             library.markPlayed(rom)
             selectedROM = rom
-            showingCoilpede = false
+            activeDemo = nil
             showingGame = true
         }
     }
