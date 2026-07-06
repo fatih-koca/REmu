@@ -188,3 +188,15 @@
 "Update required" = "Atualização necessária";
 "A newer version of REmu is required to continue. Please update from the App Store." = "É necessária uma versão mais recente do REmu para continuar. Atualize pela App Store.";
 "Update" = "Atualizar";
+
+/* Save-state UX (1.5.0) */
+"Quick Save" = "Salvamento rápido";
+"Quick Load" = "Carregamento rápido";
+"Auto-save" = "Salvamento automático";
+
+/* Screen filters (1.5.0) */
+"Screen Filter" = "Filtro de tela";
+"None" = "Nenhum";
+"Scanlines" = "Linhas de varredura";
+"CRT" = "CRT";
+"LCD" = "LCD";

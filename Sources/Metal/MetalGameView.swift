@@ -3,12 +3,26 @@ import MetalKit
 
 // MARK: - SwiftUI Bridge
 
+// Which layout editor the in-game Settings sheet requested (presented after
+// the sheet dismisses, like ContentView's LayoutEditor flow).
+private enum GameEditor: String, Identifiable {
+    case controls, screen
+    var id: String { rawValue }
+}
+
 struct EmulatorScreenView: View {
     let rom: ROMEntry
     let onExit: () -> Void
 
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showMenu = false
     @State private var showSaveStates = false
+    // Full Settings (same sheet as the home screen) reachable from the pause
+    // menu; editors it requests open over the game, mirroring ContentView's
+    // sheet → fullScreenCover flow.
+    @State private var showSettings = false
+    @State private var pendingEditor: GameEditor?
+    @State private var activeEditor: GameEditor?
     @State private var fastForward = false
     @State private var saveMessage: String?
     @State private var coreLoadFailed = false
@@ -41,6 +55,30 @@ struct EmulatorScreenView: View {
         .sheet(isPresented: $showSaveStates) {
             SaveStatesView(romID: rom.id, onMessage: { showToast($0) })
         }
+        // Full Settings from the pause menu — the exact same sheet as the
+        // home screen. If it requests a layout editor, present that editor
+        // over the game once the sheet closes, then re-apply the layouts so
+        // edits take effect on the RUNNING game immediately.
+        .sheet(isPresented: $showSettings, onDismiss: {
+            reloadLayouts()
+            if let pending = pendingEditor {
+                pendingEditor = nil
+                activeEditor = pending
+            }
+        }) {
+            SettingsView(
+                onEditScreen:   { pendingEditor = .screen;   showSettings = false },
+                onEditControls: { pendingEditor = .controls; showSettings = false }
+            )
+        }
+        .fullScreenCover(item: $activeEditor) { editor in
+            switch editor {
+            case .controls:
+                ControlLayoutEditorView { activeEditor = nil; reloadLayouts() }
+            case .screen:
+                ScreenLayoutEditorView { activeEditor = nil; reloadLayouts() }
+            }
+        }
         .onAppear {
             // Pick up any layout edits made from Settings before launching.
             controlLayout = ControlLayoutStore.load()
@@ -49,6 +87,28 @@ struct EmulatorScreenView: View {
         .onReceive(NotificationCenter.default.publisher(for: .remuFPSUpdate)) { note in
             if let fps = note.object as? Double { measuredFPS = fps }
         }
+        .onChange(of: scenePhase) { phase in
+            // Auto-save when the app is sent to the background so progress is
+            // never lost if iOS terminates it. Skipped on the menu/dialog
+            // pause states (nothing meaningful changed there).
+            if phase == .background, !coreLoadFailed { autoSave() }
+        }
+    }
+
+    /// Re-read the saved layouts so Settings/editor changes (screen rect,
+    /// filter, smoothing, control positions) apply to the running game.
+    private func reloadLayouts() {
+        controlLayout = ControlLayoutStore.load()
+        screenLayout  = ScreenLayoutStore.load()
+    }
+
+    /// Snapshot the running game into a single auto-save slot (replaces the
+    /// previous auto-save). Used on backgrounding and on exit to library.
+    private func autoSave() {
+        guard let data = CoreBridgeWrapper.shared.serializeState() else { return }
+        _ = try? SaveStateManager.shared.saveState(
+            romID: rom.id, stateData: data,
+            screenshot: GameSnapshot.shared.thumbnail(), isAuto: true)
     }
 
     @ViewBuilder
@@ -56,11 +116,15 @@ struct EmulatorScreenView: View {
         if showMenu {
             InGameMenuView(
                 rom: rom,
-                onExit: onExit,
+                onExit: { autoSave(); onExit() },
                 onDismiss: { showMenu = false },
                 onShowSaveStates: {
                     showMenu = false
                     showSaveStates = true
+                },
+                onOpenSettings: {
+                    showMenu = false
+                    showSettings = true
                 }
             ) { msg in
                 showToast(msg)
@@ -88,10 +152,12 @@ struct EmulatorScreenView: View {
                     // while the save-states picker sheet is open, or while a
                     // core-load failure dialog is shown — no point spinning a
                     // half-loaded core in the background.
-                    isPaused: showMenu || coreLoadFailed || showSaveStates,
+                    isPaused: showMenu || coreLoadFailed || showSaveStates
+                              || showSettings || activeEditor != nil,
                     fastForward: fastForward,
                     aspectMode: screenLayout.aspectMode,
-                    smoothing: screenLayout.smooth
+                    smoothing: screenLayout.smooth,
+                    filter: screenLayout.filter
                 )
                 // The `.ignoresSafeArea()` on the outer ZStack does not
                 // automatically propagate into a UIViewControllerRepresentable
@@ -262,6 +328,7 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
     /// to smooth (linear) or keep sharp (nearest) pixels.
     let aspectMode: Int
     let smoothing: Bool
+    let filter: Int
 
     func makeUIViewController(context: Context) -> MetalGameViewController {
         let vc = MetalGameViewController()
@@ -276,7 +343,7 @@ struct MetalViewRepresentable: UIViewControllerRepresentable {
         uiViewController.applySafeAreaInsets(safeAreaInsets)
         uiViewController.setPaused(isPaused)
         uiViewController.setFastForward(fastForward)
-        uiViewController.setScreenOptions(aspectMode: aspectMode, smoothing: smoothing)
+        uiViewController.setScreenOptions(aspectMode: aspectMode, smoothing: smoothing, filter: filter)
     }
 }
 
@@ -308,6 +375,7 @@ final class MetalGameViewController: UIViewController {
     // before viewDidLoad creates the renderer, so we stash and replay.
     private var pendingAspectMode = 0
     private var pendingSmoothing = true
+    private var pendingFilter = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -321,6 +389,7 @@ final class MetalGameViewController: UIViewController {
         )
         renderer.aspectMode = pendingAspectMode
         renderer.smoothing  = pendingSmoothing
+        renderer.filter     = pendingFilter
         startEmulation()
     }
 
@@ -411,6 +480,7 @@ final class MetalGameViewController: UIViewController {
         // CoreBridge calls back on each video frame; we drive MTKView from there.
         CoreBridgeWrapper.shared.onVideoFrame = { [weak self] pixelBuffer in
             guard let self, !self.suppressVideo else { return }
+            GameSnapshot.shared.store(pixelBuffer)   // for save-state thumbnails
             self.renderer.update(with: pixelBuffer)
             self.mtkView.draw()
         }
@@ -493,15 +563,24 @@ final class MetalGameViewController: UIViewController {
 
     /// Aspect mode (0 fit / 1 fill / 2 integer) and texture smoothing, set
     /// from Settings → Screen. Stashed too, in case the renderer isn't up yet.
-    func setScreenOptions(aspectMode: Int, smoothing: Bool) {
+    func setScreenOptions(aspectMode: Int, smoothing: Bool, filter: Int) {
         pendingAspectMode = aspectMode
         pendingSmoothing  = smoothing
+        pendingFilter     = filter
         renderer?.aspectMode = aspectMode
         renderer?.smoothing  = smoothing
+        renderer?.filter     = filter
     }
 }
 
 // MARK: - Metal Renderer
+
+/// Mirrors the `Uniforms` struct in the fragment shader (mode + source size).
+private struct ScreenUniforms {
+    var mode: UInt32
+    var texW: Float
+    var texH: Float
+}
 
 final class MetalRenderer: NSObject, MTKViewDelegate {
     private let device: MTLDevice
@@ -516,6 +595,8 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
     var aspectMode: Int = 0
     /// true = linear sampling (smooth), false = nearest (sharp retro pixels).
     var smoothing: Bool = true
+    /// Retro screen filter: 0 None · 1 Scanlines · 2 CRT · 3 LCD grid.
+    var filter: Int = 0
     private var nearestSampler: MTLSamplerState!
     private var linearSampler: MTLSamplerState!
 
@@ -672,6 +753,9 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         encoder.setFragmentTexture(texture, index: 0)
         encoder.setFragmentSamplerState(smoothing ? linearSampler : nearestSampler, index: 0)
+        var u = ScreenUniforms(mode: UInt32(max(0, filter)),
+                               texW: Float(texture.width), texH: Float(texture.height))
+        encoder.setFragmentBytes(&u, length: MemoryLayout<ScreenUniforms>.stride, index: 0)
         encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         encoder.endEncoding()
         commandBuffer.present(drawable)
@@ -684,6 +768,7 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         using namespace metal;
         struct Vertex { float2 pos [[attribute(0)]]; float2 uv [[attribute(1)]]; };
         struct Fragment { float4 pos [[position]]; float2 uv; };
+        struct Uniforms { uint mode; float texW; float texH; };
         vertex Fragment vert(uint vid [[vertex_id]], constant float4* v [[buffer(0)]]) {
             Fragment out;
             out.pos = float4(v[vid].xy, 0, 1);
@@ -692,8 +777,41 @@ final class MetalRenderer: NSObject, MTKViewDelegate {
         }
         fragment float4 frag(Fragment in [[stage_in]],
                              texture2d<float> tex [[texture(0)]],
-                             sampler s [[sampler(0)]]) {
-            return tex.sample(s, in.uv);
+                             sampler s [[sampler(0)]],
+                             constant Uniforms& u [[buffer(0)]]) {
+            float2 uv = in.uv;
+
+            // CRT (mode 2): gentle barrel curvature; black outside the curve.
+            if (u.mode == 2u) {
+                float2 c = uv - 0.5;
+                uv = uv + c * dot(c, c) * 0.10;
+                if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
+                    return float4(0.0, 0.0, 0.0, 1.0);
+            }
+
+            float4 col = tex.sample(s, uv);
+
+            if (u.mode == 1u || u.mode == 2u) {
+                // Scanlines locked to source pixel rows.
+                float l = sin(uv.y * u.texH * 3.14159265);
+                col.rgb *= mix(0.70, 1.0, l * l);
+            }
+            if (u.mode == 2u) {
+                // Aperture mask on source columns + vignette for CRT depth.
+                float m = sin(uv.x * u.texW * 3.14159265);
+                col.rgb *= mix(0.88, 1.0, m * m);
+                float2 vc = uv - 0.5;
+                col.rgb *= 1.0 - dot(vc, vc) * 0.45;
+                col.rgb *= 1.08;   // recover a little brightness lost to the mask
+            }
+            if (u.mode == 3u) {
+                // LCD grid: thin dark gutters between source pixels (handhelds).
+                float2 g = fract(uv * float2(u.texW, u.texH));
+                float gx = smoothstep(0.0, 0.10, g.x) * smoothstep(0.0, 0.10, 1.0 - g.x);
+                float gy = smoothstep(0.0, 0.10, g.y) * smoothstep(0.0, 0.10, 1.0 - g.y);
+                col.rgb *= mix(0.80, 1.0, gx * gy);
+            }
+            return col;
         }
         """
         let library = try! device.makeLibrary(source: source, options: nil)
@@ -712,6 +830,7 @@ struct InGameMenuView: View {
     let onExit: () -> Void
     let onDismiss: () -> Void
     let onShowSaveStates: () -> Void
+    let onOpenSettings: () -> Void
     let onMessage: (String) -> Void
 
     var body: some View {
@@ -764,11 +883,18 @@ struct InGameMenuView: View {
                 onDismiss()
             }
             Divider().background(Color.white.opacity(0.1))
-            menuButton("Save State", icon: "arrow.down.circle") {
+            menuButton("Quick Save", icon: "bolt.fill", tint: .green) {
                 performSave()
             }
-            menuButton("Load State", icon: "arrow.up.circle") {
+            menuButton("Quick Load", icon: "arrow.up.circle") {
+                performLoad()
+            }
+            menuButton("Save States", icon: "square.stack.3d.up") {
                 onShowSaveStates()
+            }
+            Divider().background(Color.white.opacity(0.1))
+            menuButton("Settings", icon: "gearshape") {
+                onOpenSettings()
             }
             Divider().background(Color.white.opacity(0.1))
             menuButton("Exit to Library", icon: "house", tint: .red) {
@@ -805,7 +931,9 @@ struct InGameMenuView: View {
             return
         }
         do {
-            _ = try SaveStateManager.shared.saveState(romID: rom.id, stateData: data)
+            _ = try SaveStateManager.shared.saveState(
+                romID: rom.id, stateData: data,
+                screenshot: GameSnapshot.shared.thumbnail())
             onMessage(String(localized: "State saved"))
         } catch {
             onMessage("\(String(localized: "Save error")): \(error.localizedDescription)")

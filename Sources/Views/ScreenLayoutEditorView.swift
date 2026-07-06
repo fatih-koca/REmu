@@ -175,6 +175,16 @@ struct ScreenLayoutEditorView: View {
                 Spacer()
                 Toggle("", isOn: smoothBinding).labelsHidden().tint(.cyan)
             }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Screen Filter")
+                    .font(.subheadline).foregroundColor(.white.opacity(0.85))
+                HStack(spacing: 8) {
+                    ForEach(Array(filterNames.enumerated()), id: \.offset) { i, name in
+                        filterChip(name, index: i)
+                    }
+                }
+            }
         }
         .padding(16)
         .background(
@@ -185,6 +195,29 @@ struct ScreenLayoutEditorView: View {
         .frame(maxWidth: 460)
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
+    }
+
+    private var filterNames: [LocalizedStringKey] {
+        ["None", "Scanlines", "CRT", "LCD"]
+    }
+
+    private func filterChip(_ name: LocalizedStringKey, index: Int) -> some View {
+        let selected = screen.filter == index
+        return Button {
+            screen.filter = index
+            ScreenLayoutStore.save(screen)
+        } label: {
+            Text(name)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(selected ? .black : .white.opacity(0.85))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(selected ? Color.cyan : Color.white.opacity(0.10))
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     private func sliderRow(title: LocalizedStringKey, value: Binding<Double>, range: ClosedRange<Double>) -> some View {

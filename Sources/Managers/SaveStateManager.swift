@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 // MARK: - Save State
 
@@ -6,7 +7,10 @@ struct SaveState: Codable {
     let romID: UUID
     let timestamp: Date
     let fileName: String
-    var screenshotPath: String?
+    var screenshotPath: String?     // relative filename, resolved via statesDirectory
+    var isAuto: Bool?               // optional for backward-compat decode
+
+    var auto: Bool { isAuto == true }
 }
 
 // MARK: - Manager
@@ -37,16 +41,43 @@ final class SaveStateManager {
 
     // MARK: Save
 
-    /// Serializes raw core RAM snapshot and writes it to disk.
-    /// `stateData` is provided by CoreBridge after calling retro_serialize().
-    func saveState(romID: UUID, stateData: Data) throws -> SaveState {
-        let fileName = "\(romID.uuidString)_\(Int(Date().timeIntervalSince1970)).state"
+    /// Serializes raw core RAM snapshot and writes it to disk, with an optional
+    /// thumbnail of the current frame. `stateData` comes from CoreBridge's
+    /// retro_serialize(). Auto-saves replace the single previous auto slot so
+    /// they don't pile up.
+    @discardableResult
+    func saveState(romID: UUID, stateData: Data,
+                   screenshot: UIImage? = nil, isAuto: Bool = false) throws -> SaveState {
+        if isAuto { removeAutoStates(for: romID) }
+
+        let base = "\(romID.uuidString)_\(Int(Date().timeIntervalSince1970))"
+        let fileName = base + (isAuto ? ".auto.state" : ".state")
         let fileURL = statesDirectory.appendingPathComponent(fileName)
         try stateData.write(to: fileURL, options: .atomic)
 
-        let state = SaveState(romID: romID, timestamp: Date(), fileName: fileName)
+        var shotName: String?
+        if let jpeg = screenshot?.jpegData(compressionQuality: 0.7) {
+            let name = fileName + ".jpg"
+            try? jpeg.write(to: statesDirectory.appendingPathComponent(name), options: .atomic)
+            shotName = name
+        }
+
+        let state = SaveState(romID: romID, timestamp: Date(),
+                              fileName: fileName, screenshotPath: shotName, isAuto: isAuto)
         try persistMetadata(state, romID: romID)
         return state
+    }
+
+    /// Resolved on-disk location of a save's thumbnail, if it still exists.
+    func screenshotURL(for state: SaveState) -> URL? {
+        guard let name = state.screenshotPath else { return nil }
+        let url = statesDirectory.appendingPathComponent(name)
+        return fm.fileExists(atPath: url.path) ? url : nil
+    }
+
+    private func removeAutoStates(for romID: UUID) {
+        let autos = ((try? listStates(for: romID)) ?? []).filter { $0.auto }
+        autos.forEach { try? deleteState($0) }
     }
 
     // MARK: Load
@@ -80,7 +111,10 @@ final class SaveStateManager {
 
     func deleteState(_ state: SaveState) throws {
         let fileURL = statesDirectory.appendingPathComponent(state.fileName)
-        try fm.removeItem(at: fileURL)
+        try? fm.removeItem(at: fileURL)
+        if let shot = state.screenshotPath {
+            try? fm.removeItem(at: statesDirectory.appendingPathComponent(shot))
+        }
         var states = (try? listStates(for: state.romID)) ?? []
         states.removeAll { $0.fileName == state.fileName }
         let data = try JSONEncoder().encode(states)

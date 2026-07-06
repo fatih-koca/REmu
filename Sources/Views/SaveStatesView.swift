@@ -90,11 +90,10 @@ struct SaveStatesView: View {
         HStack(spacing: 12) {
             Button { load(state) } label: {
                 HStack(spacing: 12) {
-                    Image(systemName: "bookmark.fill")
-                        .foregroundColor(.green)
-                        .frame(width: 24)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Save \(number)")
+                    thumbnail(for: state)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(state.auto ? LocalizedStringKey("Auto-save")
+                                        : LocalizedStringKey("Save \(number)"))
                             .font(.subheadline).fontWeight(.semibold)
                             .foregroundColor(.white)
                         Text(Self.dateFormatter.string(from: state.timestamp))
@@ -127,6 +126,26 @@ struct SaveStatesView: View {
         )
     }
 
+    @ViewBuilder
+    private func thumbnail(for state: SaveState) -> some View {
+        let w: CGFloat = 64, h: CGFloat = 44
+        if let url = SaveStateManager.shared.screenshotURL(for: state),
+           let img = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: img)
+                .resizable().aspectRatio(contentMode: .fill)
+                .frame(width: w, height: h)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .stroke(Color.white.opacity(0.12)))
+        } else {
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .fill(Color.white.opacity(0.06))
+                .frame(width: w, height: h)
+                .overlay(Image(systemName: state.auto ? "clock.arrow.circlepath" : "bookmark.fill")
+                    .foregroundColor(.green.opacity(0.8)))
+        }
+    }
+
     // MARK: Actions
 
     private func refresh() {
@@ -140,7 +159,9 @@ struct SaveStatesView: View {
             return
         }
         do {
-            _ = try SaveStateManager.shared.saveState(romID: romID, stateData: data)
+            _ = try SaveStateManager.shared.saveState(
+                romID: romID, stateData: data,
+                screenshot: GameSnapshot.shared.thumbnail())
             onMessage(String(localized: "State saved"))
             refresh()
         } catch {

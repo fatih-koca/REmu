@@ -106,10 +106,33 @@ struct ScreenLayout: Codable, Equatable {
     var y: Double
     var width: Double
     var height: Double
+    var filter: Int        // 0 = None, 1 = Scanlines, 2 = CRT, 3 = LCD grid
 
     static var defaultLayout: ScreenLayout {
         // User-tuned: centered game band (full height, Fit), sharp pixels.
         ScreenLayout(aspectMode: 0, smooth: false, x: 0.185, y: 0.0, width: 0.63, height: 1.0)
+    }
+
+    init(aspectMode: Int, smooth: Bool, x: Double, y: Double,
+         width: Double, height: Double, filter: Int = 0) {
+        self.aspectMode = aspectMode; self.smooth = smooth
+        self.x = x; self.y = y; self.width = width; self.height = height
+        self.filter = filter
+    }
+
+    enum CodingKeys: String, CodingKey { case aspectMode, smooth, x, y, width, height, filter }
+
+    // Custom decode so layouts saved before `filter` existed still load
+    // (instead of failing and resetting the user's tuned screen).
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        aspectMode = try c.decode(Int.self, forKey: .aspectMode)
+        smooth = try c.decode(Bool.self, forKey: .smooth)
+        x = try c.decode(Double.self, forKey: .x)
+        y = try c.decode(Double.self, forKey: .y)
+        width = try c.decode(Double.self, forKey: .width)
+        height = try c.decode(Double.self, forKey: .height)
+        filter = (try? c.decodeIfPresent(Int.self, forKey: .filter)) ?? 0
     }
 }
 
