@@ -396,7 +396,10 @@ struct XMBHomeView: View {
                 .shadow(color: .black.opacity(0.5), radius: 4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(.leading, lead)
-                .padding(.top, max(centerY - 106, 8))
+                // Clearance derived from the card size so the header never
+                // hides behind the focal card on large (6.9") screens where
+                // cardBase hits its cap.
+                .padding(.top, max(centerY - cardBase * 0.62 - 40, 8))
 
             if sec.isEmptyConsole {
                 emptyGames(sec)
