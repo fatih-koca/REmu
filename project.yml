@@ -50,8 +50,8 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: REmu
-        CFBundleShortVersionString: "1.5.0"
-        CFBundleVersion: "12"
+        CFBundleShortVersionString: "1.6.0"
+        CFBundleVersion: "13"
         # 10-language UI. Declaring them here makes the App Store list the app
         # as available in each language and pins the base (development) language.
         CFBundleDevelopmentRegion: en
