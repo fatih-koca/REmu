@@ -87,6 +87,10 @@ struct CoilpedeView: View {
         .onDisappear {
             GameControllerManager.shared.onAction = nil
         }
+        .onChange(of: game.state) { st in
+            // Demo over — a natural, accepted moment for an interstitial.
+            if st == .gameOver { AdManager.shared.showInterstitialIfEligible(after: 0.8) }
+        }
         .background(
             // Timeline drives the game loop without a CADisplayLink
             TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { context in

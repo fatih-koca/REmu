@@ -197,6 +197,15 @@ final class LumoGame: ObservableObject {
         }
     }
 
+    /// Rewarded-ad revive: one life, back at the last checkpoint,
+    /// score/level intact.
+    func reviveFromAd() {
+        guard state == .gameOver else { return }
+        lives = 1
+        respawnPlayer()
+        state = .ready
+    }
+
     private func loadLevel() {
         let map = Self.maps[(level - 1) % Self.maps.count]
         rows = map

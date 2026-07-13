@@ -45,6 +45,8 @@ struct ContentView: View {
                 EmulatorScreenView(rom: rom) {
                     showingGame = false
                     selectedROM = nil
+                    // Natural break point: back at the library, session over.
+                    AdManager.shared.showInterstitialIfEligible()
                 }
                 .transition(.opacity)
             } else {

@@ -123,6 +123,16 @@ final class GlowbreakGame: ObservableObject {
         }
     }
 
+    /// Rewarded-ad revive: one extra life, ball re-glued, score/level intact.
+    func reviveFromAd() {
+        guard state == .gameOver else { return }
+        lives = 1
+        combo = 0
+        powerups = []
+        glueBall()
+        state = .ready
+    }
+
     private func launch() {
         guard state == .ready, !balls.isEmpty else { return }
         // -75°…-105°: always upward, slight random tilt.

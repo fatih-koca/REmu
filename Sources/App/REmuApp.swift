@@ -98,7 +98,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        // GADMobileAds.sharedInstance().start(completionHandler: nil)  // AdMob init
+        AdManager.shared.start()   // AdMob (ATT prompt + SDK + preload)
         SaveStateManager.shared.createDirectoriesIfNeeded()
         GameControllerManager.shared.start()
         return true

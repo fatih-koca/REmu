@@ -14,6 +14,7 @@ struct GlowbreakView: View {
 
     @State private var lastTick: Date = Date()
     @State private var isPaused = false
+    @State private var gameOverAdFired = false
     @State private var padHeld: CGFloat = 0     // -1 / 0 / +1 from d-pad holds
 
     private let haptic = UIImpactFeedbackGenerator(style: .medium)
@@ -312,6 +313,21 @@ struct GlowbreakView: View {
                     .background(Capsule().fill(Color.cyan))
             }
             .buttonStyle(.plain)
+
+            if game.state == .gameOver, AdManager.shared.rewardedReady {
+                Button {
+                    AdManager.shared.showRewarded { game.reviveFromAd() }
+                } label: {
+                    Label(NSLocalizedString("Watch ad · +1 life", comment: "Rewarded revive"),
+                          systemImage: "play.tv")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 18).padding(.vertical, 10)
+                        .background(Capsule().fill(Color.white.opacity(0.14)))
+                        .overlay(Capsule().stroke(Color.white.opacity(0.25)))
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(30)
         .background(
@@ -345,5 +361,15 @@ struct GlowbreakView: View {
             game.movePaddle(dx: padHeld * 430 * CGFloat(min(dt, 1.0 / 30.0)))
         }
         game.tick(dt: dt)
+
+        // Demo over — natural interstitial moment (fires once per game over).
+        if game.state == .gameOver {
+            if !gameOverAdFired {
+                gameOverAdFired = true
+                AdManager.shared.showInterstitialIfEligible(after: 0.8)
+            }
+        } else if gameOverAdFired {
+            gameOverAdFired = false
+        }
     }
 }

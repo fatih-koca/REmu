@@ -200,3 +200,6 @@
 "Scanlines" = "扫描线";
 "CRT" = "CRT";
 "LCD" = "LCD";
+
+/* Ads (1.6.0) */
+"Watch ad · +1 life" = "看广告 · +1生命";

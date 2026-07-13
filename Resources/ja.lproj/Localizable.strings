@@ -200,3 +200,6 @@
 "Scanlines" = "走査線";
 "CRT" = "CRT";
 "LCD" = "LCD";
+
+/* Ads (1.6.0) */
+"Watch ad · +1 life" = "広告を見る · ライフ+1";

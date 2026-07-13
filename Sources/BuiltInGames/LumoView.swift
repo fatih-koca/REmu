@@ -13,6 +13,7 @@ struct LumoView: View {
 
     @State private var lastTick: Date = Date()
     @State private var isPaused = false
+    @State private var gameOverAdFired = false
     @State private var leftHeld = false
     @State private var rightHeld = false
     @State private var stickX: CGFloat = 0
@@ -488,6 +489,21 @@ struct LumoView: View {
                     .background(Capsule().fill(Color.cyan))
             }
             .buttonStyle(.plain)
+
+            if game.state == .gameOver, AdManager.shared.rewardedReady {
+                Button {
+                    AdManager.shared.showRewarded { game.reviveFromAd() }
+                } label: {
+                    Label(NSLocalizedString("Watch ad · +1 life", comment: "Rewarded revive"),
+                          systemImage: "play.tv")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 18).padding(.vertical, 10)
+                        .background(Capsule().fill(Color.white.opacity(0.14)))
+                        .overlay(Capsule().stroke(Color.white.opacity(0.25)))
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(30)
         .background(
@@ -529,5 +545,15 @@ struct LumoView: View {
         lastTick = now
         guard !isPaused else { return }
         game.tick(dt: dt)
+
+        // Demo over — natural interstitial moment (fires once per game over).
+        if game.state == .gameOver {
+            if !gameOverAdFired {
+                gameOverAdFired = true
+                AdManager.shared.showInterstitialIfEligible(after: 0.8)
+            }
+        } else if gameOverAdFired {
+            gameOverAdFired = false
+        }
     }
 }
