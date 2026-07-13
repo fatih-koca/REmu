@@ -314,7 +314,7 @@ struct GlowbreakView: View {
             }
             .buttonStyle(.plain)
 
-            if game.state == .gameOver, AdManager.shared.rewardedReady {
+            if game.state == .gameOver, game.canRevive, AdManager.shared.rewardedReady {
                 Button {
                     AdManager.shared.showRewarded { game.reviveFromAd() }
                 } label: {

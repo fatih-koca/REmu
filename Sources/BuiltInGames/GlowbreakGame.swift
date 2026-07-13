@@ -70,6 +70,10 @@ final class GlowbreakGame: ObservableObject {
     let ballR: CGFloat = 6
     let paddleH: CGFloat = 13
     private var wideRemaining: TimeInterval = 0
+    // Rewarded revives are capped per run so runs stay meaningful.
+    private(set) var revivesUsed = 0
+    let maxRevives = 2
+    var canRevive: Bool { revivesUsed < maxRevives }
     private var levelClearTimer: TimeInterval = 0
 
     var isWide: Bool { wideRemaining > 0 }
@@ -97,6 +101,7 @@ final class GlowbreakGame: ObservableObject {
     }
 
     func resetAll() {
+        revivesUsed = 0
         score = 0
         lives = 3
         level = 1
@@ -125,7 +130,8 @@ final class GlowbreakGame: ObservableObject {
 
     /// Rewarded-ad revive: one extra life, ball re-glued, score/level intact.
     func reviveFromAd() {
-        guard state == .gameOver else { return }
+        guard state == .gameOver, canRevive else { return }
+        revivesUsed += 1
         lives = 1
         combo = 0
         powerups = []

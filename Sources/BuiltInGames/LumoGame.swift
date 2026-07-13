@@ -63,6 +63,10 @@ final class LumoGame: ObservableObject {
     // Last solidly-grounded, hazard-free spot — deaths respawn here.
     private var lastSafe = CGPoint(x: 2, y: 5)
     private var safeTimer: TimeInterval = 0
+    // Rewarded revives are capped per run so runs stay meaningful.
+    private(set) var revivesUsed = 0
+    let maxRevives = 2
+    var canRevive: Bool { revivesUsed < maxRevives }
 
     // Player (tile space; pos = center)
     private(set) var px: CGFloat = 2
@@ -179,6 +183,7 @@ final class LumoGame: ObservableObject {
     }
 
     func resetAll() {
+        revivesUsed = 0
         score = 0
         lives = 3
         level = 1
@@ -200,7 +205,8 @@ final class LumoGame: ObservableObject {
     /// Rewarded-ad revive: one life, back at the last checkpoint,
     /// score/level intact.
     func reviveFromAd() {
-        guard state == .gameOver else { return }
+        guard state == .gameOver, canRevive else { return }
+        revivesUsed += 1
         lives = 1
         respawnPlayer()
         state = .ready
