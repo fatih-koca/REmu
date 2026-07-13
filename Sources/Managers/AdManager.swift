@@ -12,17 +12,16 @@ import AppTrackingTransparency
 //
 // A rewarded ad powers the demos' "watch an ad, keep playing" revive.
 //
-// Ad unit IDs below are Google's PUBLIC TEST IDS — replace with REmu's real
-// AdMob units before shipping (see the TODOs; the app id lives in
-// project.yml → GADApplicationIdentifier).
+// Ad unit IDs below are REmu's real AdMob units; the matching app id lives
+// in project.yml → GADApplicationIdentifier.
 
 final class AdManager: NSObject, GADFullScreenContentDelegate {
     static let shared = AdManager()
 
-    // TODO: replace with the real REmu ad unit IDs from the AdMob console.
+    // REmu's real AdMob ad units ("REmu Interstitial" / "REmu Rewarded").
     private enum Unit {
-        static let interstitial = "ca-app-pub-3940256099942544/4411468910"   // TEST
-        static let rewarded     = "ca-app-pub-3940256099942544/1712485313"   // TEST
+        static let interstitial = "ca-app-pub-9552777744655142/5070715031"
+        static let rewarded     = "ca-app-pub-9552777744655142/7752718697"
     }
 
     private var interstitial: GADInterstitialAd?

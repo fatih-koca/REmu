@@ -93,10 +93,8 @@ targets:
         # and is honest: REmu only uses Apple's HTTPS for the optional
         # cover-art lookup, which falls under Apple's standard exemption.
         ITSAppUsesNonExemptEncryption: false
-        # --- AdMob ---
-        # TODO: replace with REmu's REAL AdMob App ID before release
-        # (this is Google's public TEST app id).
-        GADApplicationIdentifier: "ca-app-pub-3940256099942544~1458002511"
+        # --- AdMob (REmu'nun gerçek App ID'si) ---
+        GADApplicationIdentifier: "ca-app-pub-9552777744655142~6307775080"
         NSUserTrackingUsageDescription: "Your data will be used to deliver more relevant ads to you."
         SKAdNetworkItems:
           - SKAdNetworkIdentifier: 22mmun2rn5.skadnetwork
