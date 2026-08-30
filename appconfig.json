@@ -1,4 +1,5 @@
 {
   "minVersion": "1.6.0",
-  "_nasil_kullanilir": "Zorunlu guncelleme: minVersion'a yeni surum numarasini yazin (orn. 1.4.0). Bu surumden ESKI uygulamalar acilista 'Guncelleme gerekli' ekrani gorur ve App Store'a yonlendirilir. Internet yoksa engelleme yapilmaz."
+  "minVersionAndroid": "1.0.0",
+  "_nasil_kullanilir": "Zorunlu guncelleme. iOS icin minVersion, Android icin minVersionAndroid kullanilir — ikisi AYRI surum dizisi izler. Bir anahtari yukseltmek, o platformda daha ESKI uygulamalarin acilista 'Guncelleme gerekli' ekrani gormesini ve magazaya yonlendirilmesini saglar. DIKKAT: bir surumu ancak magazada CANLI olduktan sonra zorunlu yapin. Internet yoksa engelleme yapilmaz."
 }
